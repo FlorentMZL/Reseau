@@ -1,5 +1,5 @@
 import java.net.*;
-import java.util.Random;
+import java.util.ArrayList;
 import java.io.*;
 import java.lang.*;
 
@@ -10,12 +10,11 @@ public class Serveur{
             ServerSocket server = new ServerSocket(4242);
             while(true){
                 Socket socket = server.accept();
-                ThreadClass serv = new ThreadClass(socket);
+                ListepartiesClass listeParties = new ListepartiesClass(new ArrayList<Partie>());
+                ThreadClass serv = new ThreadClass(socket, listeParties);
+                
                 Thread t = new Thread(serv);
                 t.start();
-            
-
-
             }
             }catch (Exception e){
                 System.out.println(e);
