@@ -6,8 +6,8 @@ public class Partie {
     private ArrayList<Joueur> JoueurNonValide; //Joueurs n'ayant pas envoyé start
     private ArrayList<Joueur> listeJoueurs; //Joueurs inscrits dans la partie (peu importe s'ils ont envoyé start)
 
-    public Partie(int n, int[] taille, Joueur j ){
-        this.numero = n; 
+    public Partie( int[] taille, Joueur j ){
+      
         this.tailleLab = taille; 
         this.nbJoueurs = 1; 
         this.listeJoueurs = new ArrayList<Joueur>();
@@ -15,6 +15,10 @@ public class Partie {
         listeJoueurs.add(j);
         JoueurNonValide.add(j);
 
+    }
+    public Partie(Joueur j){
+        listeJoueurs.add(j);
+        JoueurNonValide.add(j);
     }
     public int[] getTaille (){
         return this.tailleLab;
@@ -25,5 +29,13 @@ public class Partie {
     public ArrayList<Joueur> listJoueurs(){
         return this.listeJoueurs;
     }
-
+    public int getNumero(){
+        return this.numero;
+    }
+    public int getJoueurs(){
+        return this.nbJoueurs;
+    }
+    public void setNumero(int n){
+        this.numero = n;
+    }
 }
