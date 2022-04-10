@@ -15,7 +15,9 @@ public class Serveur{
                 
                 Thread t = new Thread(serv);
                 t.start();
+                
             }
+            
             }catch (Exception e){
                 System.out.println(e);
                 e.printStackTrace();
