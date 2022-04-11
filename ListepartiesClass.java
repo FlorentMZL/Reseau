@@ -22,6 +22,9 @@ public class  ListepartiesClass{
     public Partie get (int i){
         return listeParties.get(i);
     }
+    public ArrayList<Partie> getListe(){
+        return this.listeParties;
+    }
     public void add(Partie e){
         this.listeParties.add(e);
         e.setNumero(this.increment());

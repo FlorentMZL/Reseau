@@ -38,4 +38,9 @@ public class Partie {
     public void setNumero(int n){
         this.numero = n;
     }
+    public void ajouterJoueur(Joueur j){
+        listeJoueurs.add(j);
+        JoueurNonValide.add(j);
+
+    }
 }

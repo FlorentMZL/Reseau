@@ -4,14 +4,17 @@ import java.io.*;
 import java.lang.*;
 
 public class Serveur{
-
+static ArrayList<Partie> ls = new ArrayList<Partie>();
+static ListepartiesClass  lsc = new ListepartiesClass(ls);
     public static void main (String[] args){
         try{
             ServerSocket server = new ServerSocket(4242);
             while(true){
+               
+              
                 Socket socket = server.accept();
-                ListepartiesClass listeParties = new ListepartiesClass(new ArrayList<Partie>());
-                ThreadClass serv = new ThreadClass(socket, listeParties);
+                
+                ThreadClass serv = new ThreadClass(socket, lsc);
                 
                 Thread t = new Thread(serv);
                 t.start();
