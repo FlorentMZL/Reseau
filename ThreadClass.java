@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.lang.*;
 public class ThreadClass implements Runnable{
     public Socket socket; 
     private ListepartiesClass listeParties;
@@ -15,14 +16,17 @@ public class ThreadClass implements Runnable{
 
     public void run(){
         try{ 
-            BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            InputStreamReader ir = new InputStreamReader(socket.getInputStream());
+            BufferedReader br = new BufferedReader(ir);
             PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
-            int nbgames = listeParties.taille();
-            pw.print("GAMES " + nbgames + "***");
+            
+            pw.print("GAMES " +  listeParties.taille() + "***");
             pw.flush();
-            for (int i = 0; i<nbgames; i++){
-                pw.print("OGAME "+ listeParties.get(i).getNumero() +" " + listeParties.get(i).getJoueurs()+ "***");
+            for (int i = 0; i< listeParties.taille(); i++){
+                pw.print("OGAME "+ (Integer.valueOf(listeParties.get(i).getNumero())).byteValue() +" " + listeParties.get(i).getJoueurs()+ "***");
             }
+           
             pw.flush();
             char[] buf = new char[5];
             while(true){
@@ -46,13 +50,43 @@ public class ThreadClass implements Runnable{
                             Partie nouvelle = new Partie(a, this.j1);
                             addPartie(nouvelle);
                             pw.print("REGOK "+ nouvelle.getNumero());
+                           
                             pw.flush();
                         }
                         else {
                             pw.print("REGNO***");
+                            pw.flush();
                         }
                     }
                 }
+                else if (req1.equals("REGIS")){
+                    char[] idportm = new char[21];
+                    br.read(idportm);
+                    String idportmS = new String(idportm);
+                    String endString = new String(idportmS.substring(18,21));
+                    if (!(endString.equals("***"))){
+                        
+                        pw.print("AAAREGNO "+ endString);
+                        pw.flush();
+                    }
+                    else{
+                        int a = Integer.parseInt(idportmS.substring(17,18));
+                        for(Partie p :listeParties.getListe()){
+                            if (p.getNumero()== a){
+                                this.j1 = new Joueur(idportmS.substring(1, 9), idportmS.substring(10,14));
+                                p.ajouterJoueur(this.j1);
+                                pw.print("REGOK "+ Integer.valueOf(p.getNumero()).byteValue());
+                                pw.flush();
+                                break;
+                            }
+
+                        }
+                    }
+                    
+                    
+                    
+                }
+
                 
             }
            
