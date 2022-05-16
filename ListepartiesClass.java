@@ -27,7 +27,7 @@ public class  ListepartiesClass{
     }
     public void add(Partie e){
         this.listeParties.add(e);
-        e.setNumero(this.increment());
+        e.setNumero(Integer.valueOf(this.increment()).byteValue());
     }
 
 }

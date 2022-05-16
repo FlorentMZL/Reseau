@@ -35,12 +35,16 @@ public class Partie {
     public int getJoueurs(){
         return this.nbJoueurs;
     }
-    public void setNumero(int n){
+    public void setNumero(byte n){
         this.numero = n;
     }
     public void ajouterJoueur(Joueur j){
         listeJoueurs.add(j);
         JoueurNonValide.add(j);
 
+    }
+    public void supprimerJoueur(Joueur j){
+        this.listeJoueurs.remove(j);
+        this.nbJoueurs -=1;
     }
 }
