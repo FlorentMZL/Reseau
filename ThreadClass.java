@@ -1,7 +1,10 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.nio.*;
+import java.nio.charset.Charset;
 import java.lang.*;
+import java.math.BigInteger;
 public class ThreadClass implements Runnable{
     public Socket socket; 
     private ListepartiesClass listeParties;
@@ -11,45 +14,68 @@ public class ThreadClass implements Runnable{
     public ThreadClass (Socket s,   ListepartiesClass liste){
         this.socket = s; 
         this.listeParties = liste;
+        this.j1 = null;
 
     }
-
+    public byte[] concatBytes (byte[] t1, byte[] t2){
+        byte[] t3 = new byte[t1.length + t2.length];
+        for(int i = 0; i<t1.length; i++){
+            t3[i] = t1[i];
+        }
+        for (int j = t1.length +1; j< t3.length; j++){
+            t3[j]=t2[j-t1.length-1];
+        }
+        return t3;
+    } 
+    
     public void run(){
         try{ 
-
-            InputStreamReader ir = new InputStreamReader(socket.getInputStream());
+            InputStream isr = socket.getInputStream();
+            OutputStream osr = socket.getOutputStream();
+            InputStreamReader ir = new InputStreamReader(isr);
             BufferedReader br = new BufferedReader(ir);
-            PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+            OutputStreamWriter or = new OutputStreamWriter(osr);
+            PrintWriter pw = new PrintWriter(or);
             
-            pw.print("GAMES " +  listeParties.taille() + "***");
+            String gamesEnvoi = "GAMES ";
+            
+            gamesEnvoi = "GAMES " + (char)listeParties.taille();
+            gamesEnvoi = gamesEnvoi + "***";
+            pw.print(gamesEnvoi);
+            
             pw.flush();
-            for (int i = 0; i< listeParties.taille(); i++){
-                pw.print("OGAME "+ (Integer.valueOf(listeParties.get(i).getNumero())).byteValue() +" " + listeParties.get(i).getJoueurs()+ "***");
+            String envoieListeGames = "";
+            
+            for (Partie p : listeParties.getListe()){
+            envoieListeGames = "OGAME " + (char)p.getNumero() + " " + p.getNbJoueurs() + "***"; 
+            pw.print(envoieListeGames);  
+            pw.flush();
             }
-           
-            pw.flush();
-            char[] buf = new char[5];
+            
+            char[] buf = new char[6];
             while(true){
+                
                 br.read(buf);
+                
                 String req1 = new String(buf);
-                if (req1.equals("NEWPL")){
-                    char[] idport = new char[17];
+                if (req1.equals("NEWPL ")){
+                    char[] idport = new char[16];
                     br.read(idport);
                     String idportString = new String(idport);
                     System.out.println(idportString);
-                    if (!(idportString.substring(14,17).equals("***"))){
-                        pw.print("REGNO***");
+                    if (!checkEtoiles(idportString)){
+                        pw.print("REGNO***" + idportString);
                         pw.flush();
                     }
                     else{
-                        String idString = idportString.substring(1,9);
-                        String portString = idportString.substring(10,14);
+                        String idString = idportString.substring(0,8);
+                        String portString = idportString.substring(9,13);
                         if (checkPort(portString)){
                             this.j1 = new Joueur(idString, portString);
                             int[] a = {10,10};
                             Partie nouvelle = new Partie(a, this.j1);
                             addPartie(nouvelle);
-                            pw.print("REGOK "+ nouvelle.getNumero());
+                            pw.print("REGOK "+ (char)nouvelle.getNumero());
                            
                             pw.flush();
                         }
@@ -59,32 +85,131 @@ public class ThreadClass implements Runnable{
                         }
                     }
                 }
-                else if (req1.equals("REGIS")){
-                    char[] idportm = new char[21];
+                else if (req1.equals("REGIS ")){
+                    
+                    char[]idportm = new char[18];
                     br.read(idportm);
                     String idportmS = new String(idportm);
-                    String endString = new String(idportmS.substring(18,21));
-                    if (!(endString.equals("***"))){
-                        
-                        pw.print("AAAREGNO "+ endString);
-                        pw.flush();
-                    }
-                    else{
-                        int a = Integer.parseInt(idportmS.substring(17,18));
-                        for(Partie p :listeParties.getListe()){
-                            if (p.getNumero()== a){
-                                this.j1 = new Joueur(idportmS.substring(1, 9), idportmS.substring(10,14));
-                                p.ajouterJoueur(this.j1);
-                                pw.print("REGOK "+ Integer.valueOf(p.getNumero()).byteValue());
-                                pw.flush();
-                                break;
+                    if (checkEtoiles(idportmS)){
+                        String idString = idportmS.substring(0,8);
+                        String portString = idportmS.substring(9,13);
+                        int numeroPartie = (int)idportmS.substring(14,15).charAt(0);
+                        if (checkPort(portString)){
+                            boolean check = false;
+                            for(Partie p :listeParties.getListe()){
+                                if (p.getNumero()== numeroPartie){
+                                    this.j1 = new Joueur(idString, portString);
+                                    p.ajouterJoueur(this.j1);
+                                    pw.print("REGOK "+ (char)p.getNumero());
+                                    pw.flush();
+                                    check = true;
+                                    break;
+                                }
+                            
                             }
-
+                            if (!check){
+                                pw.print("REGNO***");
+                                pw.flush();
+                            }
                         }
                     }
+                   
+                    else{
+                        
+                        pw.print("REGNO***");
+                        pw.flush();
+                    }
                     
                     
                     
+                }
+                else if (req1.equals("UNREG*")){
+                    char[] et = new char[2];
+                    br.read(et);
+                    String etS = new String(et);
+                    if (etS.equals("**")){
+                        if (this.j1 == null){
+                            pw.print("DUNNO***");
+                            pw.flush();
+                            
+                        }
+                        else{
+                            int numpartiesup =0;
+                            for (Partie p : listeParties.getListe()){
+                                if (p.getlisteJoueurs().contains(this.j1)){
+                                    p.supprimerJoueur(this.j1);
+                                    this.j1 = null;
+                                    break;
+                                }
+                            }
+                            pw.print("UNROK " + (char)numpartiesup + "***");
+                            pw.flush();
+                        }
+                        
+                    }
+                    else{
+                        pw.print("DUNNO***");
+                        pw.flush();
+                        System.out.println( "probleme sah");
+                    }
+
+                }
+                else if (req1.equals("GAME?*")){
+                    char[] et = new char[2];
+                    br.read(et);
+                    String etS = new String(et);
+                    if (etS.equals("**")){
+                        envoiGames(pw);
+                        
+                    }
+                    else {
+                        System.out.println("problemeEtoilesGame?");
+                    }
+                }        
+                else if (req1.equals("LIST?")){
+                    char[] suite = new char[5];
+                    br.read(suite);
+                    String suiteS = new String(suite);
+                    if (!checkEtoiles(suiteS)){
+                        System.out.println("probleme étoiles");
+                        pw.print("DUNNO***");
+                        pw.flush();
+                    }
+                    else {
+
+                        boolean check = false;
+                        int numeroPartie = (int)suiteS.substring(1,3).charAt(0);
+                        for (Partie p : listeParties.getListe()){
+                            if (p.getNumero()==numeroPartie){
+                                listerJoueurs(p,pw);
+                                check = true;
+                                break;
+                            }
+                        }
+                        if (!check){
+                            pw.print("DUNNO***");
+                            pw.flush();
+                        }
+                    }
+                }
+                else if(req1.equals("SIZE? ")) {
+                    char[] suite = new char[5];
+                    br.read(suite);
+                    String suiteS = new String(suite);
+                    if(!checkEtoiles(suiteS)){
+                        System.out.println("probleme etoiles size");
+                        pw.print("DUNNO***");
+                        pw.flush();
+                    }
+
+                    else{
+                        int numeroPartie = (int)suiteS.substring(1,3).charAt(0);
+                        for(Partie p : listeParties.getListe()){
+                            if(p.getNumero()==numeroPartie){
+                                
+                            }
+                        }
+                    }
                 }
 
                 
@@ -111,6 +236,12 @@ public class ThreadClass implements Runnable{
             listeParties.add(p);
         }
     }
+    private boolean checkEtoiles(String s){
+        if (s.substring(s.length()-3, s.length()).equals("***")){
+            return true;
+        }
+        else return false;
+    }
     private boolean checkPort(String s){
         
         try {
@@ -122,4 +253,29 @@ public class ThreadClass implements Runnable{
         }
         return false;
     }
+    private void envoiGames (PrintWriter pw){
+        String gamesEnvoi = "GAMES ";
+            
+            gamesEnvoi = "GAMES " + (char)listeParties.taille();
+            gamesEnvoi = gamesEnvoi + "***";
+           
+            pw.print(gamesEnvoi);
+            
+            pw.flush();
+            String envoieListeGames = "";
+            
+            for (Partie p : listeParties.getListe()){
+            envoieListeGames = "OGAME " + (char)p.getNumero() + " " + p.getNbJoueurs() + "***"; 
+            pw.print(envoieListeGames);  
+            pw.flush();
+            }
+    }
+    private void listerJoueurs(Partie p, PrintWriter pw){
+       for(Joueur j : p.getlisteJoueurs()){
+            pw.print("PLAYR "+ j.identifiant+"***");
+            pw.flush();
+        }
+        
+    }
+    
 }
