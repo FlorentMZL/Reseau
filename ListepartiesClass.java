@@ -29,5 +29,18 @@ public class  ListepartiesClass{
         this.listeParties.add(e);
         e.setNumero(this.increment());
     }
+    public void remove(Partie p){
+        listeParties.remove(p);
+    }
+    public int nonCommencées(){
+        int i = 0;
+        for(Partie p:listeParties){
+            if (p.getLock()==false){
+                i++;
+            }
+        }
+        return i;
+
+    }
 
 }

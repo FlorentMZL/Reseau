@@ -47,57 +47,67 @@ public class ThreadClass implements Runnable{
             String envoieListeGames = "";
             
             for (Partie p : listeParties.getListe()){
-            envoieListeGames = "OGAME " + (char)p.getNumero() + " " + p.getNbJoueurs() + "***"; 
+            envoieListeGames = "OGAME " + (char)p.getNumero() + " " + (char)p.getNbJoueurs() + "***"; 
             pw.print(envoieListeGames);  
             pw.flush();
             }
             
-            char[] buf = new char[6];
+            
             while(true){
-                
-                br.read(buf);
-                
-                String req1 = new String(buf);
+                char[] buf = new char[50];
+                if (br.read(buf)==-1){//si le client s'est déconnecté.
+                    removeAll(j1);
+                    break;
+                }
+                String bufS = new String (buf);
+                String bufCommande = getCommande(bufS);
+                System.out.println(bufCommande);
+                String req1 = bufCommande.substring(0,6);
+                String suite = bufCommande.substring(6,bufCommande.length());
+
                 if (req1.equals("NEWPL ")){
-                    char[] idport = new char[16];
-                    br.read(idport);
-                    String idportString = new String(idport);
-                    System.out.println(idportString);
-                    if (!checkEtoiles(idportString)){
-                        pw.print("REGNO***" + idportString);
+                  
+                    
+                    if (this.j1 != null){
+                        pw.print("REGNO***");
                         pw.flush();
                     }
                     else{
-                        String idString = idportString.substring(0,8);
-                        String portString = idportString.substring(9,13);
+                        String idString = suite.substring(0,8);
+                        String portString = suite.substring(9,13);
                         if (checkPort(portString)){
+                            
                             this.j1 = new Joueur(idString, portString);
                             int[] a = {10,10};
                             Partie nouvelle = new Partie(a, this.j1);
+                            j1.setPartie(nouvelle);
                             addPartie(nouvelle);
                             pw.print("REGOK "+ (char)nouvelle.getNumero());
-                           
                             pw.flush();
+                            
                         }
                         else {
                             pw.print("REGNO***");
                             pw.flush();
                         }
-                    }
+                    }         
                 }
                 else if (req1.equals("REGIS ")){
                     
-                    char[]idportm = new char[18];
-                    br.read(idportm);
-                    String idportmS = new String(idportm);
-                    if (checkEtoiles(idportmS)){
-                        String idString = idportmS.substring(0,8);
-                        String portString = idportmS.substring(9,13);
-                        int numeroPartie = (int)idportmS.substring(14,15).charAt(0);
+                    
+                    if (checkEtoiles(suite)&&this.j1 == null){
+                        
+                        String idString = suite.substring(0,8);
+                        System.out.println(idString);
+                        String portString = suite.substring(9,13);
+                        int numeroPartie = (int)suite.substring(14,15).charAt(0);
                         if (checkPort(portString)){
                             boolean check = false;
                             for(Partie p :listeParties.getListe()){
-                                if (p.getNumero()== numeroPartie){
+                                System.out.println(p.getNumero());
+                                System.out.println(numeroPartie);
+                                if (!p.getLock()&&p.getNumero()== numeroPartie){
+                                    
                                     this.j1 = new Joueur(idString, portString);
                                     p.ajouterJoueur(this.j1);
                                     pw.print("REGOK "+ (char)p.getNumero());
@@ -115,7 +125,7 @@ public class ThreadClass implements Runnable{
                     }
                    
                     else{
-                        
+                        System.out.println(suite);
                         pw.print("REGNO***");
                         pw.flush();
                     }
@@ -124,10 +134,8 @@ public class ThreadClass implements Runnable{
                     
                 }
                 else if (req1.equals("UNREG*")){
-                    char[] et = new char[2];
-                    br.read(et);
-                    String etS = new String(et);
-                    if (etS.equals("**")){
+                   
+                    if (suite.equals("**")){
                         if (this.j1 == null){
                             pw.print("DUNNO***");
                             pw.flush();
@@ -137,11 +145,14 @@ public class ThreadClass implements Runnable{
                             int numpartiesup =0;
                             for (Partie p : listeParties.getListe()){
                                 if (p.getlisteJoueurs().contains(this.j1)){
-                                    p.supprimerJoueur(this.j1);
+                                    supprimerJoueur(p,this.j1);
+                                    this.verifStart(p);
                                     this.j1 = null;
+                                    numpartiesup = p.getNumero();
                                     break;
                                 }
                             }
+                            
                             pw.print("UNROK " + (char)numpartiesup + "***");
                             pw.flush();
                         }
@@ -155,30 +166,24 @@ public class ThreadClass implements Runnable{
 
                 }
                 else if (req1.equals("GAME?*")){
-                    char[] et = new char[2];
-                    br.read(et);
-                    String etS = new String(et);
-                    if (etS.equals("**")){
+                
+                    if (suite.equals("**")){
                         envoiGames(pw);
                         
                     }
-                    else {
-                        System.out.println("problemeEtoilesGame?");
-                    }
+                    
                 }        
-                else if (req1.equals("LIST?")){
-                    char[] suite = new char[5];
-                    br.read(suite);
-                    String suiteS = new String(suite);
-                    if (!checkEtoiles(suiteS)){
-                        System.out.println("probleme étoiles");
+                else if (req1.equals("LIST? ")){
+                    
+                    if (!checkEtoiles(suite)||this.j1!=null){
                         pw.print("DUNNO***");
                         pw.flush();
                     }
                     else {
 
                         boolean check = false;
-                        int numeroPartie = (int)suiteS.substring(1,3).charAt(0);
+                        int numeroPartie = (int)suite.substring(0,1).charAt(0);
+                        System.out.println(numeroPartie);
                         for (Partie p : listeParties.getListe()){
                             if (p.getNumero()==numeroPartie){
                                 listerJoueurs(p,pw);
@@ -193,22 +198,41 @@ public class ThreadClass implements Runnable{
                     }
                 }
                 else if(req1.equals("SIZE? ")) {
-                    char[] suite = new char[5];
-                    br.read(suite);
-                    String suiteS = new String(suite);
-                    if(!checkEtoiles(suiteS)){
-                        System.out.println("probleme etoiles size");
+                   
+                    if(!checkEtoiles(suite)||this.j1!=null){
+                        System.out.println(suite);
                         pw.print("DUNNO***");
                         pw.flush();
                     }
 
                     else{
-                        int numeroPartie = (int)suiteS.substring(1,3).charAt(0);
+                        boolean check = false;
+                        int numeroPartie = (int)suite.substring(0,1).charAt(0);
                         for(Partie p : listeParties.getListe()){
                             if(p.getNumero()==numeroPartie){
-                                
+                                String [] ll = p.longueurLargeur();
+                                pw.print("SIZE? "+ (char)numeroPartie + " " + ll[0]+ " " + ll[1] + "***");
+                                pw.flush();   
+                                check = true;
                             }
+                            break;
                         }
+                        if (!check){
+                            pw.print("DUNNO***");
+                            pw.flush();
+                        }
+                    }
+                }
+                else if (req1.equals("START*")){
+                   
+                    if (suite.equals("**")&&j1!=null){
+                        j1.getPartie().startJoueur(j1);
+                        if (j1.getPartie().getLock()){
+                           System.out.println("out va bien ici"); //this.startPartie(j1.getPartie());
+                        }
+                    }
+                    else {
+
                     }
                 }
 
@@ -231,6 +255,7 @@ public class ThreadClass implements Runnable{
     
 
     }
+  
     private void addPartie(Partie p){
         synchronized(listeParties){
             listeParties.add(p);
@@ -254,28 +279,77 @@ public class ThreadClass implements Runnable{
         return false;
     }
     private void envoiGames (PrintWriter pw){
+        synchronized(listeParties){
         String gamesEnvoi = "GAMES ";
             
-            gamesEnvoi = "GAMES " + (char)listeParties.taille();
+            gamesEnvoi = "GAMES " + (char)listeParties.nonCommencées();
             gamesEnvoi = gamesEnvoi + "***";
-           
+            
             pw.print(gamesEnvoi);
             
             pw.flush();
             String envoieListeGames = "";
             
             for (Partie p : listeParties.getListe()){
-            envoieListeGames = "OGAME " + (char)p.getNumero() + " " + p.getNbJoueurs() + "***"; 
+            envoieListeGames = "OGAME " + (char)p.getNumero() + " " + (char)p.getNbJoueurs() + "***"; 
             pw.print(envoieListeGames);  
             pw.flush();
             }
+        }
     }
     private void listerJoueurs(Partie p, PrintWriter pw){
+        pw.print("LIST? "+ (char)p.getNumero() + " "+(char)p.getNbJoueurs()+"***");
+        pw.flush();
        for(Joueur j : p.getlisteJoueurs()){
-            pw.print("PLAYR "+ j.identifiant+"***");
+            pw.print("PLAYR "+ j.getId()+"***");
             pw.flush();
         }
         
     }
-    
+    private void supprimerJoueur(Partie p, Joueur j){
+        if (p.getlisteJoueurs().contains(j)){
+            p.supprimerJoueur(j);
+        }
+        synchronized(p){
+            if (p.getlisteJoueurs().size()==0){
+                listeParties.remove(p);
+            }
+        }
+
+    }
+    private void removeAll(Joueur j){
+        for (Partie p : listeParties.getListe()){
+            if (p.getlisteJoueurs().contains(j)){
+                supprimerJoueur(p, j);
+                if (p.nombreJoueurs()==0){
+                    supprimerPartie(p);
+                }
+                break;
+            }
+        }
+    }
+    public void verifStart(Partie p){
+        if (p.verifStart()){
+            this.startPartie(p);
+        }
+    }
+    public void supprimerPartie (Partie p){
+        this.listeParties.remove(p);
+    }
+    public void startPartie(Partie p){
+
+    }
+    public String getCommande(String s){
+        String a = "";
+        for(int i = 0; i<s.length()-2;i++){
+            if (s.charAt(i) =='*'&&s.charAt(i+1)=='*'&&s.charAt(i+2)=='*'){
+                a = s.substring(0, i+3);
+                break;
+            }
+        }
+        return a ;
+    }
 }
+
+
+
