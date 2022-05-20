@@ -100,14 +100,22 @@ int main(int argc, char **argv) {
             j++;
           }
           intS[j]='\0';
+          char port[5];
+          j = 0; 
+          for (int i = 11; i<15&&bufScan[i]!='\0';i++){
+              port[j]=bufScan[i];
+              j++;
+            }
+          port[j] = '\0';
+
           if (alph==1){
             if (bufScan[0]=='5'){
-             joined= creatPartie(descr, intS);
+             joined= creatPartie(descr, intS, port);
             }         
             else if (bufScan[0] == '6'){
               j=0;
               char numPartie [3];
-              for(int i = 10; i<longueur && bufScan[i]!='\0';i++){
+              for(int i = 15; i<longueur && bufScan[i]!='\0';i++){
             
             numPartie[j]  = bufScan[i];
             j++;
@@ -118,7 +126,7 @@ int main(int argc, char **argv) {
             printf("erreur de syntaxe");
           }
           
-          joined = joinPartie(descr, intS, numpartieI);
+          joined = joinPartie(descr, intS,port, numpartieI);
             }
           }
 

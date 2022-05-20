@@ -6,7 +6,7 @@ public class Partie {
     private int [] tailleLab; //Taille du labyrinthe
     public Labyrinthe lab;
     private int nbJoueurs;
-    private int port = 6543;
+    private String port = "6543";
     public boolean finished;
     private String ipMult;
     private ArrayList<Joueur> joueurNonValide; //Joueurs n'ayant pas envoyé start
@@ -35,7 +35,7 @@ public class Partie {
         this.ipMult = s;
         
     }
-    public int getPort(){
+    public String getPort(){
         return this.port;
     }
     public String getIP(){

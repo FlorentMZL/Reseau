@@ -61,6 +61,7 @@ public class ThreadClass implements Runnable{
                     else{
                         String idString = suite.substring(0,8);
                         String portString = suite.substring(9,13);
+                        
                         if (checkPort(portString)){
                             
                             this.j1 = new Joueur(idString, portString);
@@ -86,14 +87,24 @@ public class ThreadClass implements Runnable{
                         String idString = suite.substring(0,8);
                         System.out.println(idString);
                         String portString = suite.substring(9,13);
+                        
                         int numeroPartie = (int)suite.substring(14,15).charAt(0);
                         if (checkPort(portString)){
                             boolean check = false;
+                            boolean portcheck = false;
                             for(Partie p :listeParties.getListe()){
                                 System.out.println(p.getNumero());
                                 System.out.println(numeroPartie);
                                 if (!p.getLock()&&p.getNumero()== numeroPartie){
-                                    
+                                    for(Joueur j : p.getlisteJoueurs()){
+                                        if (j.getPort().equals(portString)||j.getId().equals(idString)){
+                                            System.out.println("Meme port/id");
+                                            portcheck=true;break;
+                                        }
+                                    }
+                                    if (portcheck){
+                                        break;
+                                    }
                                     this.j1 = new Joueur(idString, portString);
                                     p.ajouterJoueur(this.j1);
                                     j1.setPartie(p);
@@ -333,9 +344,9 @@ public class ThreadClass implements Runnable{
   
     public String getCommande(String s){
         String a = "";
-        for(int i = 0; i<s.length()-2;i++){
-            if (s.charAt(i) =='*'&&s.charAt(i+1)=='*'&&s.charAt(i+2)=='*'){
-                a = s.substring(0, i+3);
+        for(int i = s.length()-1; i>2;i--){
+            if (s.charAt(i) =='*'&&s.charAt(i-1)=='*'&&s.charAt(i-2)=='*'){
+                a = s.substring(0, i+1);
                 break;
             }
         }
@@ -360,7 +371,7 @@ public class ThreadClass implements Runnable{
         try{
             DatagramSocket dso = new DatagramSocket();
             byte[] data = s.getBytes();
-            InetSocketAddress ia = new InetSocketAddress(p.getIP(),p.getPort());
+            InetSocketAddress ia = new InetSocketAddress(p.getIP(),Integer.parseInt(p.getPort()));
             DatagramPacket paquet = new DatagramPacket(data, data.length, ia);
             dso.send(paquet);
             dso.close();
@@ -389,7 +400,15 @@ public class ThreadClass implements Runnable{
         Random r = new Random();
         int rand = r.nextInt(2);
         if (rand == 0){
-            p.lab.mouvementGhost();
+            Fantome [] a =p.lab.mouvementGhost();
+            int i = 0;
+            while(a[i]!=null){
+               
+                diffusion_multicast(p, "GHOST "+ completerPos(a[i].getX())+ " "+ completerPos(a[i].getY())+"+++");
+                i+=1;
+            }
+                
+            
         }
         int [] coords =p.getLab().mouvementJoueur(this.j1, mov, nombrecases);
         j1.setX(coords[0]);
@@ -409,20 +428,51 @@ public class ThreadClass implements Runnable{
         }
         p.lab.afficheLabyrinthe();
     }
-
+    public int diffusion_udp(Partie p, String id, String mes){
+        String port = "";
+       
+        for(Joueur j : p.getlisteJoueurs()){
+            if (j.getId().equals(id)){
+                port = j.getPort();
+            }
+            
+        }
+        
+        if (port.equals("")){
+            return 0;
+        }
+        try{
+          
+            DatagramSocket dso = new DatagramSocket();
+            String joueurID = this.j1.getId();
+            String concat = "MESSP " + joueurID+" "+mes+"+++";
+            byte [] data = concat.getBytes();
+            System.out.println(port);
+            InetSocketAddress ia = new InetSocketAddress("255.255.255.255", Integer.parseInt(port));
+            DatagramPacket paquet = new DatagramPacket(data, data.length, ia);
+            dso.send(paquet);
+            dso.close();
+            
+            return 1;
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return 0;
+            
+    }
 
     public void startPartie(Partie p, PrintWriter pw, BufferedReader br){
         boolean end = false;
         
             String [] ll = p.longueurLargeur();
             String multidif = remplir(p.getIP());
-            pw.print("WELCO " + (char)p.getNumero()+ " " +ll[0]+ " " + ll[1]+" " + (char)p.getLab().getNbGhost()+" " +multidif +" "+ (char)p.getPort()+ "***");
+            pw.print("WELCO " + (char)p.getNumero()+ " " +ll[0]+ " " + ll[1]+" " + (char)p.getLab().getNbGhost()+" " +multidif +" "+ p.getPort()+ "***");
             pw.flush();
             int[] coordonnées =p.getLab().placerJoueur(this.j1);
             p.getLab().afficheLabyrinthe();
             pw.print("POSIT " + j1.getId() + " "+ completerPos(coordonnées[0]) + " " + completerPos(coordonnées[1]) + "***");
             pw.flush();
-            char[] lireReq = new char[50];
+            char[] lireReq = new char[220];
             while(end==false&&!socket.isClosed()){
             try { 
                 if (br.read(lireReq)==-1){
@@ -476,7 +526,30 @@ public class ThreadClass implements Runnable{
                         }
 
                     }
+                    
                 
+                }
+                else if (req1.equals("MALL? ")){
+                    System.out.println(suite);
+                    String suiteSansEtoiles = suite.substring(0, suite.length()-3);
+
+                    if (!(suiteSansEtoiles.contains("***")||suiteSansEtoiles.contains("+++"))){
+                        diffusion_multicast(p, "MESSA " + this.j1.getId() + " " + suiteSansEtoiles+"+++");
+                    }
+
+                }
+                else if (req1.equals("SEND? ")){
+                    String suiteSansEtoiles = suite.substring(0, suite.length()-3);
+                    System.out.println(suiteSansEtoiles);
+                    int a =diffusion_udp(p,suiteSansEtoiles.substring(0,8), suiteSansEtoiles.substring(9,suiteSansEtoiles.length()));
+                    if (a==0){
+                        pw.print("NSEND***");
+                        pw.flush();
+                    }
+                    if(a!=0){
+                        pw.print("SEND!***");
+                        pw.flush();
+                    }
                 }
             }
             catch (Exception e){

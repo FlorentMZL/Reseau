@@ -149,7 +149,8 @@ void recevoirDim( int descr, int num){
 
     }
 }
-int creatPartie(int descr, char id []){
+int creatPartie(int descr, char id [], char port[]){
+    port_number=port;
     char* envoi = "NEWPL ";
     char bufenvoi[22];
     strcpy(bufenvoi, envoi);
@@ -174,8 +175,8 @@ int creatPartie(int descr, char id []){
         return 1;
     }
 }
-int joinPartie(int descr, char id[], int m){
-    
+int joinPartie(int descr, char id[], char port[], int m){
+    port_number = port;
     char *envoi = "REGIS ";
     char bufenvoi [24];
     strcpy(bufenvoi, envoi);
@@ -206,39 +207,62 @@ void sendStart(int descr){
     send(descr, "START***", 8,0);
 }
 void *ecouteMulticast(void *arg){
+    
     attributsPartie partie = *((attributsPartie*)arg);
     int sock = socket(PF_INET, SOCK_DGRAM,0);
     int ok = 1; 
     int r = setsockopt(sock, SOL_SOCKET,SO_REUSEPORT,&ok,sizeof(ok));
+    if (r<0){
+        printf("erreur setsockopt");
+        exit(1);
+    }
+    printf("%d\n", partie.port);
     struct sockaddr_in address_sock;
     address_sock.sin_family = AF_INET;
     address_sock.sin_port=htons(partie.port);
     address_sock.sin_addr.s_addr = htonl(INADDR_ANY);
     r = bind(sock,(struct sockaddr *)&address_sock, sizeof (struct sockaddr_in));
+    if (r<0){
+        printf("erreur binding multicast");
+    }
+    else {
+    
     struct ip_mreq mreq;
-    mreq.imr_multiaddr.s_addr = partie.adresseIp;
+    printf("%s\n",partie.adresseIp);
+    mreq.imr_multiaddr.s_addr = inet_addr(partie.adresseIp);
     mreq.imr_interface.s_addr=htonl(INADDR_ANY);
     r=setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
+    if (r<0){
+        printf("erreur setsockopt multicast\n");
+    }
     if (r==0){
     char tampon[100];
         while(1){
+           
             int rec = recv(sock, tampon, 100, 0);
             tampon[rec] = '\0';
             printf("Message recu : %s\n", tampon);
     
         }
     }
-    return ;
+    
+    }return ;
 }
 void *ecouteUDP(void *arg){
-    int port = *((int*)arg);
+    
+    printf("port : %s\n", port_number);
     int sock = socket(PF_INET, SOCK_DGRAM, 0);
     struct sockaddr_in address_sock;
     address_sock.sin_family= AF_INET;
-    address_sock.sin_port= htons(port);
+    address_sock.sin_port= htons(atoi(port_number));
     address_sock.sin_addr.s_addr=htonl(INADDR_ANY);
     int r = bind(sock,(struct sockaddr *)&address_sock,sizeof(struct sockaddr_in));
+    if (r<0){
+        printf("erreur binding udp");
+        exit(1);
+    }
     if (r==0){
+        printf("on ecoute la\n");
         char tampon [100];
         while(1){
             int rec = recv(sock, tampon, 100, 0);
@@ -340,16 +364,19 @@ void recupInfosStart(int descr){
     recv(descr, poubelle, 1, 0);
     int recu = recv(descr, bufIP, 15, 0);
     bufIP[recu]='\0';
-    for(int i = strlen(bufIP); i>0;i--){
+    for(int i = strlen(bufIP)-1; i>0;i=i-1){
         if (bufIP[i]!='#'){
             bufIP[i+1]='\0';
             break;
         }
     }
+    printf("ici IP %s\n",bufIP);
+  
     recv(descr, poubelle,1,0);
     recu = recv(descr,bufPORT, 4, 0 );
     recv(descr, poubelle, 3,0);
     bufPORT[recu]='\0';
+   
     int portInt = atoi(bufPORT);
     attributsPartie p = {
         .adresseIp = bufIP,
@@ -358,7 +385,7 @@ void recupInfosStart(int descr){
         };
     pthread_t thMulticast;
     pthread_t thUDP ;
-    pthread_create(&thUDP, NULL, ecouteUDP, &portInt);
+    pthread_create(&thUDP, NULL, ecouteUDP, &port_number);
     pthread_create(&thMulticast, NULL, ecouteMulticast,&p );
     char position[20];
     recv(descr, position,15,0 );
@@ -382,12 +409,45 @@ void recupInfosStart(int descr){
     q -n : se déplacer de n cases vers la gauche\n\
     d -n : se déplacer de n cases vers la droite\n\
     g : lister tous les joueurs de la partie \n\
-    l : quitter la partie\n ");
+    l : quitter la partie\n\
+    m -message : envoyer un message a tous les joueurs\n\
+    p -id -message: envoyer un message au joueur id\n");
     char bufScan[300];
 
     int lireEntree = fgets(bufScan, 300,stdin);
     bufScan[strlen(bufScan)-1]='\0';
-    if (strlen(bufScan)==1){
+    if (bufScan[0]=='m'){
+        int longueurB = strlen(bufScan);
+        char envoimsg [longueurB+6+1];
+        strcpy(envoimsg,"MALL? ");
+        strcat(envoimsg, bufScan+2);
+        envoimsg[longueurB + 6]='*';
+        envoimsg[longueurB+5]='*';
+        envoimsg[longueurB+4]='*';
+        send(descr, envoimsg,longueurB+6+1, 0);
+
+    }
+    else if (bufScan[0]=='p'){
+        int longueurB = strlen(bufScan);
+        char envoimsg[longueurB+6+1+8];
+        strcpy(envoimsg, "SEND? ");
+        strcat(envoimsg, bufScan+2);
+        envoimsg[longueurB+4]='*';
+        envoimsg[longueurB+5]='*';
+        envoimsg[longueurB+6]='*';
+        send(descr, envoimsg, longueurB+6+1,0);
+        char recums[9];
+        int recu = recv(descr,recums , 8,0);
+        recums[recu]='\0';
+        if (recums[0]=='N'){
+            printf("Le message n'a pas pu etre envoyé");
+
+        }
+        else{
+            printf("Le message a été envoyé");
+        }
+    }
+    else if (strlen(bufScan)==1){
         if (bufScan[0]=='l'){
             send(descr, "IQUIT***", 8, 0);
             recv(descr, stdin, 8,0);

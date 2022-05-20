@@ -8,14 +8,18 @@ public class Labyrinthe{
     private int largeur; 
     private Case[][] lab; 
     private int nombreFantomes;
+    private ArrayList<Fantome> listeFantomes;
+
     
     public Labyrinthe(int nb){
         this.longueur = 10; 
         this.largeur = 10; 
         this.lab = this.remplirtableau1();
         nombreFantomes=nb;
+        
+        this.listeFantomes= new ArrayList<Fantome>();
         this.placerFantome();
-    }
+        }
     public Labyrinthe( int x, int y){
         this.longueur = x; 
         this.largeur = y;
@@ -51,40 +55,63 @@ public class Labyrinthe{
         return tab; 
     }
     
-    public void mouvementGhost(){
-        for(int x = 1;x<lab[0].length-1; x++){
-            for(int y = 1; y<lab[0].length-1;y++){
+    public Fantome[] mouvementGhost(){
+        int[] t = new int[this.nombreFantomes*2];
+        int index = 0;
+        Fantome[] tab = new Fantome[listeFantomes.size()];
+        int i = 0;
+        for(Fantome f : listeFantomes){
+            int x = f.getX(); 
+            int y = f.getY();
                 if(isGhost(x,y)){
                     Random random = new Random();
                     int nb;
                     nb = random.nextInt(4);
                     if(nb==0){ //le fantome va a  gauche
-                        if( !(isMur(x,y-1)||lab[x][y-1].joueurs.size()!=0||lab[x][y-1].fantome)){
-                            this.lab[x-1][y].fantome=true;
-                            this.lab[x][y].fantome=false;
+                        if( !(isMur(x,y-1)||lab[x][y-1].joueurs.size()!=0||lab[x][y-1].fantome!=null)){
+                            this.lab[x][y-1].fantome=f;
+                            f.setY(y-1);
+                            this.lab[x][y].fantome=null;
+                            tab[i] = f;
+                            i+=1;
                         }
                     }
                     else if(nb==1){//haut
-                        if(!(isMur(x-1,y)||lab[x-1][y].joueurs.size()!=0||lab[x-1][y].fantome)){
-                            this.lab[x][y-1].fantome=true;
-                            this.lab[x][y].fantome=false;
+                        if(!(isMur(x-1,y)||lab[x-1][y].joueurs.size()!=0||lab[x-1][y].fantome!=null)){
+                            this.lab[x-1][y].fantome=f;
+                            this.lab[x][y].fantome=null;
+                            f.setX(x-1);
+                            tab[i] =f;
+                            i+=1;
                         }
                     }
                     else if(nb==2){//droite
-                        if(!(isMur(x,y+1)||lab[x][y+1].joueurs.size()!=0||lab[x][y+1].fantome)){
-                            this.lab[x+1][y].fantome=true;
-                            this.lab[x][y].fantome=false;
+                        if(!(isMur(x,y+1)||lab[x][y+1].joueurs.size()!=0||lab[x][y+1].fantome!=null)){
+                            this.lab[x][y+1].fantome=f;
+                            this.lab[x][y].fantome=null;
+                            f.setY(y+1);
+                            tab[i] = f;
+                            i+=1;
                         }
                     }
                     else if(nb==3){//bas
-                        if(!(isMur(x+1,y)||lab[x+1][y].joueurs.size()!=0||lab[x][y+1].fantome)){
-                            this.lab[x][y+1].fantome=true;
-                            this.lab[x][y].fantome=false;
+                        if(!(isMur(x+1,y)||lab[x+1][y].joueurs.size()!=0||lab[x+1][y].fantome!=null)){
+                            this.lab[x+1][y].fantome=f;
+                            this.lab[x][y].fantome=null;
+                            f.setX(x+1);
+                            tab[i] = f;
+                            i+=1;
                         }
+                        
                     }
                 }
-            }
-    }
+                else{
+                    System.out.println("pas de fantome a cette case");
+                    return null;
+                }
+            
+        }
+        return tab;    
     }
     
   synchronized  public int[] mouvementJoueur(Joueur j, String direction, int nb ){// D, G, H, B
@@ -98,7 +125,8 @@ public class Labyrinthe{
                         this.lab[x+i-1][y].joueurs.remove(j);
                         j.ajouterFantome();
                         nombreFantomes-=1;
-                        this.lab[x+i][y].fantome =false;
+                        listeFantomes.remove(this.lab[x+i][y].fantome);
+                        this.lab[x+i][y].fantome =null;
                         int[] t = new int[3];
                         t[0] = x+i; t[1] = y;t[2] = 1;
                         return t;
@@ -132,8 +160,8 @@ public class Labyrinthe{
                         this.lab[x-i+1][y].joueurs.remove(j);
                         j.ajouterFantome();
                         nombreFantomes-=1;
-                        
-                        this.lab[x-i][y].fantome =false;
+                        listeFantomes.remove(this.lab[x-i][y].fantome);
+                        this.lab[x-i][y].fantome =null;
                         int[] t = new int[3];
                         t[0] = x-i; t[1] = y;t[2] = 1;
                         return t;
@@ -160,7 +188,8 @@ public class Labyrinthe{
                     if(isGhost(x,y-i)){
                         this.lab[x][y-i].joueurs.add(j);
                         this.lab[x][y-i+1].joueurs.remove(j);
-                        this.lab[x][y-i].fantome =false;
+                        listeFantomes.remove(this.lab[x][y-i].fantome);
+                        this.lab[x][y-i].fantome =null;
                         j.ajouterFantome();
                         nombreFantomes-=1;
                         int[] t = new int[3];
@@ -191,7 +220,8 @@ public class Labyrinthe{
                         this.lab[x][y+i-1].joueurs.remove(j);
                         j.ajouterFantome();
                         nombreFantomes-=1;
-                        this.lab[x][y+i].fantome =false;
+                        listeFantomes.remove(this.lab[x][y+i].fantome);
+                        this.lab[x][y+i].fantome =null;
                         int[] t = new int[3];
                         t[0] = x; t[1] = y+i; t[2] = 1;
                         return t;
@@ -268,9 +298,9 @@ public class Labyrinthe{
         for(int i=0;i<10;i++){
             for(int j=0;j<10;j++){
                 if(t[i][j]==1){
-                    tab[i][j]=new Case(1, null, false);
+                    tab[i][j]=new Case(1, null, null);
                 }else{
-                    tab[i][j]=new Case(0, new ArrayList<Joueur>(), false);
+                    tab[i][j]=new Case(0, new ArrayList<Joueur>(), null);
                 }
             }
         }
@@ -279,7 +309,7 @@ public class Labyrinthe{
     
     public Case[][] remplirtableau1 (){
         Case[][] tab =new Case[12][12];
-        Case b=new Case(0, new ArrayList<Joueur>(), false);
+        Case b=new Case(0, new ArrayList<Joueur>(), null);
         int[][] t =
         {{1,1,1,1,1,1,1,1,1,1,1,1},
         {1,1,0,0,1,1,0,0,1,1,1,1},
@@ -297,9 +327,9 @@ public class Labyrinthe{
         for(int i=0;i<12;i++){
             for(int j=0;j<12;j++){
                 if(t[i][j]==1){
-                    tab[i][j]=new Case(1, null, false);
+                    tab[i][j]=new Case(1, null, null);
                 }else{
-                    tab[i][j]=new Case(0, new ArrayList<Joueur>(), false);
+                    tab[i][j]=new Case(0, new ArrayList<Joueur>(), null);
                 }
             }
         }
@@ -325,9 +355,9 @@ public class Labyrinthe{
         for(int i=0;i<12;i++){
             for(int j=0;j<12;j++){
                 if(t[i][j]==1){
-                    tab[i][j]=new Case(1, null, false);
+                    tab[i][j]=new Case(1, null, null);
                 }else{
-                    tab[i][j]=new Case(0, new ArrayList<Joueur>(), false);
+                    tab[i][j]=new Case(0, new ArrayList<Joueur>(), null);
                 }
             }
         }
@@ -354,9 +384,9 @@ public class Labyrinthe{
         for(int i=0;i<12;i++){
             for(int j=0;j<12;j++){
                 if(t[i][j]==1){
-                    tab[i][j]=new Case(1, null, false);
+                    tab[i][j]=new Case(1, null, null);
                 }else{
-                    tab[i][j]=new Case(0, new ArrayList<Joueur>(), false);
+                    tab[i][j]=new Case(0, new ArrayList<Joueur>(), null);
                 }
             }
         }
@@ -382,9 +412,9 @@ public class Labyrinthe{
         for(int i=0;i<12;i++){
             for(int j=0;j<12;j++){
                 if(t[i][j]==1){
-                    tab[i][j]=new Case(1, null, false);
+                    tab[i][j]=new Case(1, null, null);
                 }else{
-                    tab[i][j]=new Case(0, new ArrayList<Joueur>(), false);
+                    tab[i][j]=new Case(0, new ArrayList<Joueur>(), null);
                 }
             }
         }
@@ -412,9 +442,9 @@ public class Labyrinthe{
         for(int i=0;i<12;i++){
             for(int j=0;j<12;j++){
                 if(t[i][j]==1){
-                    tab[i][j]=new Case(1, null, false);
+                    tab[i][j]=new Case(1, null, null);
                 }else{
-                    tab[i][j]=new Case(0, new ArrayList<Joueur>(), false);
+                    tab[i][j]=new Case(0, new ArrayList<Joueur>(), null);
                 }
             }
         }
@@ -438,14 +468,15 @@ public class Labyrinthe{
         return true; 
     }
     public boolean isGhost (int x, int y){
-        if (this.lab[x][y].fantome){
+        if (this.lab[x][y].fantome!=null){
             return true;
         }
         return false;
     }
-    public void enleverFantome(int x, int y){
-        if(this.lab[x][y].enleverFantome()){
+    public void enleverFantome(Fantome f){
+        if(this.lab[f.getX()][f.getY()].enleverFantome()){
             this.nombreFantomes -=1;
+            this.listeFantomes.remove(f);
         }
     }
 
@@ -460,7 +491,11 @@ public class Labyrinthe{
                 rand = new Random().nextInt((lab[0].length-1))+1;
                 rand2 = new Random().nextInt((lab[0].length-1))+1;
            }
-           lab[rand][rand2].fantome = true;
+           lab[rand][rand2].fantome = new Fantome(rand, rand2);
+          
+           listeFantomes.add(lab[rand][rand2].fantome);
+           
+    
         }
         
     }
