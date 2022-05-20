@@ -1,16 +1,19 @@
 import java.util.*;
 
-import javax.swing.plaf.synth.SynthCheckBoxMenuItemUI;
+
 public class Partie {
     private int numero; //Numero de la partie
     private int [] tailleLab; //Taille du labyrinthe
-    private Labyrinthe lab;
-    private int nbJoueurs; 
+    public Labyrinthe lab;
+    private int nbJoueurs;
+    private int port = 6543;
+    public boolean finished;
+    private String ipMult;
     private ArrayList<Joueur> joueurNonValide; //Joueurs n'ayant pas envoyé start
     private ArrayList<Joueur> listeJoueurs; //Joueurs inscrits dans la partie (peu importe s'ils ont envoyé start)
     private boolean lock;//Savoir quand on peut commencer une partie
     public Partie( int[] taille, Joueur j ){
-      
+        
         this.tailleLab = taille; 
         this.nbJoueurs = 1; 
         this.listeJoueurs = new ArrayList<Joueur>();
@@ -18,13 +21,25 @@ public class Partie {
         listeJoueurs.add(j);
         joueurNonValide.add(j);
         lock = false;
+        this.lab = new Labyrinthe(5);
     }
+
     public Partie(Joueur j){
         listeJoueurs.add(j);
         joueurNonValide.add(j);
     }
     public Labyrinthe getLab(){
         return this.lab;
+    }
+    public void setIP(String s){
+        this.ipMult = s;
+        
+    }
+    public int getPort(){
+        return this.port;
+    }
+    public String getIP(){
+        return this.ipMult;
     }
     public int[] getTaille (){
         return this.tailleLab;
@@ -121,5 +136,9 @@ public class Partie {
         }
         return this.lock;
     }
-    }
+    //int[] placerJoueur(Joueur j){
+      //  return this.lab.placerJoueur(j);
+    //}    
+    
+}
 

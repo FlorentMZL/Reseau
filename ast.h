@@ -67,7 +67,8 @@ void afficherUsage(){
     -3 -m : Demander la taille du labyrinthe d'une partie m \n\
     -4 -m : Demander la liste des joueurs inscrits à une partie m \n\
     -5 -pseudo : Créer une partie. pseudo de 8 caractères alphanumeriques\n\
-    -6 -pseudo -m : rejoint la partie m avec un pseudo de 8 caractères alphanumeriques\n");
+    -6 -pseudo -m : rejoint la partie m avec un pseudo de 8 caractères alphanumeriques\n\
+    -7 : \"start\" la partie. N'est utilisable que si vous etes dans une partie\n ");
     
 }
 int unreg(int descr){
@@ -227,6 +228,7 @@ void *ecouteMulticast(void *arg){
     
         }
     }
+    return ;
 }
 void *ecouteUDP(void *arg){
     int port = *((int*)arg);
@@ -243,6 +245,82 @@ void *ecouteUDP(void *arg){
             tampon[rec] = '\0';
             printf("Message recu : %s\n", tampon);
         }
+    }
+    return;
+}
+void recevoirPos(int descr){
+    char bufRecu[21];
+        recv(descr,bufRecu, 6, 0);
+        bufRecu[7] = '\0'; 
+        printf("%s\n",bufRecu);
+        if (bufRecu[4]=='!'){
+            char xpos[4];
+            char ypos[4];
+            int recx =recv(descr, xpos, 3, 0);
+            recv(descr,bufRecu, 1, 0);//' '
+            recv(descr, ypos, 3,0);
+            xpos[recx] = '\0';
+            ypos[recx] = '\0';
+            int xnew = atoi(xpos);
+        int ynew = atoi(ypos);
+        recv(descr,bufRecu,3,0 );//"***"
+
+        printf("Nouvelle position : ligne %d, colonne %d. ", xnew, ynew);
+    }
+    else{
+        char xpos [4];
+        char ypos[4];
+        int recx =recv(descr, xpos, 3, 0);
+        recv(descr,bufRecu, 1, 0);//' '
+        recv(descr, ypos, 3,0);
+        xpos[recx] = '\0';
+        ypos[recx] = '\0';
+        int xnew = atoi(xpos);
+        int ynew = atoi(ypos);
+        recv(descr,bufRecu,1,0 );
+        char nbPoints[5];
+        int recpoints =recv(descr, nbPoints, 4,0);
+        nbPoints[recpoints]='\0';
+        int nbPts = atoi(nbPoints);
+        recv(descr, bufRecu, 3,0);//"***"
+        printf("Fantome attrapé! Nouvelle position : ligne %d, colonne %d. %d Points", xnew, ynew, nbPts);
+    }
+}
+void glisCom(int descr){
+    char bufRec[10];
+    char identite[9];
+    char posX[4];
+    char posY[4];
+    char nbF[5];
+    int posXI;
+    int posYI;
+    int nbFI;
+    send(descr, "GLIS?***", 8,0);
+    recv(descr, bufRec, 6, 0);
+    
+    uint8_t nombreJoueurs;
+    
+    recv(descr, &nombreJoueurs, 1,0);
+    recv(descr, bufRec,3,0);
+   
+    for(int i = 0; i<nombreJoueurs; i++){
+        recv(descr,bufRec,6,0);
+        int recu = recv(descr, identite,8,0);
+        identite[recu]='\0';
+        recv(descr,bufRec, 1,0);
+        recu= recv(descr, posX, 3,0);
+        posX[recu]='\0';
+        recv(descr,bufRec, 1,0);
+        recu =recv(descr, posY, 3,0);
+        posY[recu]='\0';
+        recv(descr,bufRec, 1,0);
+        recu = recv(descr, nbF, 4,0);
+        nbF[recu]='\0';
+        posXI = atoi(posX);
+        posYI = atoi(posY);
+        nbFI = atoi(nbF);
+        printf("Joueur %d : %s, ligne %d, colonne %d, nombre de points : %d.",i+1, identite, posXI, posYI, nbFI);
+        recv(descr,bufRec, 3,0);
     }
 }
 
@@ -296,6 +374,107 @@ void recupInfosStart(int descr){
     int coordYInt = atoi (coordY);
     printf("Taille du labyrinthe : %" PRIu16 "lignes, %" PRIu16 " colonnes.\n", hauteur, largeur);
     printf("Position de départ : ligne %d, colonne %d. Il y a %" PRIu8 " fantomes\n", coordXInt, coordYInt, fantomes);
+    while(1==1){
+    printf("**********\n");
+    printf("Commandes : \n\
+    z -n: se déplacer de n cases vers le haut\n\
+    s -n : se déplacer de n cases vers le bas \n\
+    q -n : se déplacer de n cases vers la gauche\n\
+    d -n : se déplacer de n cases vers la droite\n\
+    g : lister tous les joueurs de la partie \n\
+    l : quitter la partie\n ");
+    char bufScan[300];
+
+    int lireEntree = fgets(bufScan, 300,stdin);
+    bufScan[strlen(bufScan)-1]='\0';
+    if (strlen(bufScan)==1){
+        if (bufScan[0]=='l'){
+            send(descr, "IQUIT***", 8, 0);
+            recv(descr, stdin, 8,0);
+        
+            exit(0);
+        }
+        else if (bufScan[0]=='g'){
+            glisCom(descr);
+        }
+    }
+    else if (strlen(bufScan)<=5){// si on a recu un message de la forme "z/q/s/d n"
+        int longueur = strlen(bufScan);
+        
+          char intS [4] ;
+          int j = 2;
+          for(int i = longueur-1; i>=2;i--){
+            intS[j]  = bufScan[i];
+            j--;
+          }
+          while(j>=0){
+              intS[j] = '0';
+              j= j-1;
+          }
+        intS[4] = '\0';
+        
+
+       
+            if (bufScan[0]== 'z') {
+                char bufenvoi [12];
+                bufenvoi[0] = '\0';
+                strcat (bufenvoi, "UPMOV ");
+                strcat(bufenvoi, intS);
+                bufenvoi[11] = '*';
+                bufenvoi[10] = '*';
+                bufenvoi[9]='*';
+                send(descr, bufenvoi, sizeof(bufenvoi), 0);
+                recevoirPos(descr);
+            }
+            else if (bufScan[0]=='s'){ 
+                char bufenvoi [12];
+                bufenvoi[0] = '\0';
+                strcat (bufenvoi, "DOMOV ");
+                
+                bufenvoi[6] = '\0';
+                printf("%s\n", bufenvoi);
+                strcat(bufenvoi, intS);
+                bufenvoi[11] = '*';
+                bufenvoi[10] = '*';
+                bufenvoi[9]='*';
+                send(descr, bufenvoi, sizeof(bufenvoi), 0);
+                recevoirPos(descr);
+            }
+            else if (bufScan[0]=='q'){ 
+                char bufenvoi [12];
+                bufenvoi[0] = '\0';
+                strcat (bufenvoi, "LEMOV ");
+                bufenvoi[6] = '\0';
+                printf("%s\n", bufenvoi);
+                strcat(bufenvoi, intS);
+                bufenvoi[11] = '*';
+                bufenvoi[10] = '*';
+                bufenvoi[9]='*';
+                send(descr, bufenvoi, sizeof(bufenvoi), 0);
+                recevoirPos(descr);
+            }
+            else if (bufScan[0]=='d'){ 
+                char bufenvoi [12];
+                bufenvoi[0] = '\0';
+                strcat (bufenvoi, "RIMOV ");
+                bufenvoi[6] = '\0';
+                printf("%s\n", bufenvoi);
+                strcat(bufenvoi, intS);
+                
+                bufenvoi[11] = '*';
+                bufenvoi[10] = '*';
+                bufenvoi[9]='*';
+                send(descr, bufenvoi, sizeof(bufenvoi), 0);
+                recevoirPos(descr);
+            }
+            
+        
+        }
+    
+    
+    
+
+    }
 
 
 

@@ -5,10 +5,13 @@ public class Joueur {
     //Position du joueur sur un labyrinthe. 
     public int x;
     public int y; 
+    public int nbFantomes;
 
     public Joueur (String id, String port){
         this.identifiant = id;
         this.port = port; 
+        this.nbFantomes=0;
+        
     }
     public String getId(){
         return this.identifiant;
@@ -28,5 +31,16 @@ public class Joueur {
     }
     public void setPartie(Partie p){
         this.p = p;
+    }
+    public void ajouterFantome(){
+        this.nbFantomes+=1;
+        
+    }
+    public void setX(int x){
+        this.x = x;
+    }
+
+    public void setY(int y){
+        this.y = y;
     }
 }

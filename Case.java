@@ -1,17 +1,20 @@
+import java.util.ArrayList;
+
+
 public class Case{
     public int mur; // 1 = mur, 0 = pas un mur
-    public boolean joueur; //présence de joueur ou pas
+    public ArrayList<Joueur> joueurs; //présence de joueur ou pas
     public boolean fantome; //présence de fantome ou pas
     
     public Case(){
         this.mur=0;
-        this.joueur=false;
+        this.joueurs=new ArrayList<Joueur>();
         this.fantome=false;
     }
     
-    public Case(int m, boolean j, boolean f){
+    public Case(int m, ArrayList<Joueur> a, boolean f){
         this.mur=m;
-        this.joueur=j;
+        this.joueurs=a;
         this.fantome=f;
     }
     public boolean enleverFantome(){

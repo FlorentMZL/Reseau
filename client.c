@@ -36,6 +36,7 @@ int main(int argc, char **argv) {
         switch (bufScan[0]){
           case '2' :
             unreg(descr);
+            break;
           case '1' : 
             send(descr, "GAME?***", 8,0);
             char hellorec[7];
@@ -47,6 +48,7 @@ int main(int argc, char **argv) {
             int qsda = recv(descr, buff1, 3, 0);
             printf("GAMES %" PRIu8 "\n" , a);
             afficherparties(descr, a);
+            break;
           case'7' : 
             if (joined ==0){
               printf("vous n'avez pas rejoint de partie\n");
@@ -54,9 +56,10 @@ int main(int argc, char **argv) {
             }
             else {
               sendStart(descr);
-              printf("en attente du démarrage de la partie.\n")
+              printf("en attente du démarrage de la partie.\n");
               recupInfosStart(descr);
             }
+            break;
         }
       }
       else {
