@@ -3,8 +3,8 @@ public class Joueur {
     private String port; //4 caractères numériques. 
     private Partie p;
     //Position du joueur sur un labyrinthe. 
-    int x; 
-    int y; 
+    public int x;
+    public int y; 
 
     public Joueur (String id, String port){
         this.identifiant = id;
@@ -19,6 +19,12 @@ public class Joueur {
     }
     public Partie getPartie(){
         return this.p;
+    }
+    public int getX(){
+        return this.x;
+    }
+    public int getY(){
+        return this.y;
     }
     public void setPartie(Partie p){
         this.p = p;

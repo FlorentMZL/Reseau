@@ -5,10 +5,12 @@ public class Labyrinthe{
     private int largeur; 
     private Case[][] lab; 
     private int nombreFantomes;
-    public Labyrinthe(){
+    
+    public Labyrinthe(int nb){
         this.longueur = 10; 
         this.largeur = 10; 
         this.lab = this.remplirtableau1();
+        nombreFantomes=nb;
     }
     public Labyrinthe( int x, int y){
         this.longueur = x; 
@@ -74,6 +76,92 @@ public class Labyrinthe{
             }
         }
     }
+    
+    public void mouvementJoueur(Joueur j, String direction, int nb ){// D, G, H, B
+        int x=j.getX();
+        int y=j.getY();
+        if(direction.equals("D")){
+            for(int i=0,i<nb,i++){
+                if(this.tab[x+1][y].Joueur==null && this.tab[x][y].Joueur==j && !isMur(x+1,y)){
+                    if(isGhost(x+1,y)){
+                        this.tab[x+1][y].Joueur=j;
+                        this.tab[x][y].Joueur=null;
+                        i=nb+1;
+                    }else{
+                    this.tab[x+1][y].Joueur=j;
+                    this.tab[x][y].Joueur=null;
+                    x++;
+                    }
+                }
+            }
+        }
+        
+        if(direction.equals("G")){
+            for(int i=0,i<nb,i++){
+                if(this.tab[x-1][y].Joueur==null && this.tab[x][y].Joueur==j && !isMur(x-1,y)){
+                    if(isGhost(x-1,y)){
+                        this.tab[x-1][y].Joueur=j;
+                        this.tab[x][y].Joueur=null;
+                        i=nb+1;
+                    }else{
+                    this.tab[x-1][y].Joueur=j;
+                    this.tab[x][y].Joueur=null;
+                    x++;
+                    }
+                }
+            }
+        }
+        
+        if(direction.equals("H")){
+            for(int i=0,i<nb,i++){
+                if(this.tab[x][y-1].Joueur==null && this.tab[x][y].Joueur==j && !isMur(x,y-1)){
+                    if(isGhost(x,y-1)){
+                        this.tab[x][y-1].Joueur=j;
+                        this.tab[x][y].Joueur=null;
+                        i=nb+1;
+                    }else{
+                    this.tab[x][y-1].Joueur=j;
+                    this.tab[x][y].Joueur=null;
+                    x++;
+                    }
+                }
+            }
+        }
+        if(direction.equals("B")){
+            for(int i=0,i<nb,i++){
+                if(this.tab[x][y+1].Joueur==null && this.tab[x][y].Joueur==j && !isMur(x,y+1)){
+                    if(isGhost(x,y+1)){
+                        this.tab[x][y+1].Joueur=j;
+                        this.tab[x][y].Joueur=null;
+                        i=nb+1;
+                    }else{
+                    this.tab[x][y+1].Joueur=j;
+                    this.tab[x][y].Joueur=null;
+                    x++;
+                    }
+                }
+            }
+        }
+        
+        
+    }
+    
+    public void afficheLabyrinthe(){
+        for(int i=0; i<this.tab.length;i++){
+            for(int j=0;j<this.lab[i].length;j++){
+                if(this.lab[i][j].joueur==null && isGhost(i,j)){
+                    System.out.println("F ");
+                }else if(this.lab[i][j].joueur==null && !isGhost(i,j)){
+                    System.out.println("  ");
+                }else if(isMur(i,j)){
+                    System.out.println("X ");
+                }else{
+                    System.out.println("J ");
+                }
+            }
+        }
+        
+    }
 
                    
                    
@@ -98,11 +186,11 @@ public class Labyrinthe{
                 {1,1,0,1,0,1,0,1,0,1,0,1},
                 {1,0,0,0,0,0,0,0,0,0,0,1},
                 {1,1,0,1,0,1,0,1,0,1,0,1},
-                {0,0,0,0,0,0,0,0,0,0,0,1},
+                {1,0,0,0,0,0,0,0,0,0,0,1},
                 {1,1,0,1,0,1,0,1,0,1,0,1},
                 {1,0,0,0,0,0,0,0,0,0,0,1},
                 {1,1,0,1,0,1,0,1,0,1,0,1},
-                {1,0,0,0,0,0,0,0,0,0,0,0},
+                {1,0,0,0,0,0,0,0,0,0,0,1},
                 {1,1,0,1,0,1,0,1,0,1,0,1},
                 {1,0,0,0,0,0,0,0,0,0,0,1},
                 {1,1,1,1,1,1,1,1,1,1,1,1}};
@@ -126,7 +214,7 @@ public class Labyrinthe{
                 {a,a,b,b,a,a,b,b,a,a,a,a},
                 {a,a,b,a,a,a,b,a,a,a,b,a},
                 {a,a,b,a,a,a,b,b,b,b,b,a},
-                {b,b,b,a,a,a,b,a,a,a,a,a},
+                {a,b,b,a,a,a,b,a,a,a,a,a},
                 {a,a,b,a,a,a,b,b,b,a,b,a},
                 {a,a,b,b,b,b,b,a,a,a,b,a},
                 {a,b,b,a,b,a,a,a,b,b,b,a},
@@ -167,7 +255,7 @@ public class Labyrinthe{
                 {a,b,b,a,a,a,b,a,a,a,b,a},
                 {a,a,b,a,a,a,b,a,b,b,b,a},
                 {a,a,b,b,b,b,b,a,b,a,b,a},
-                {b,b,b,a,b,a,a,a,b,a,b,a},
+                {a,b,b,a,b,a,a,a,b,a,b,a},
                 {a,a,a,a,b,a,a,a,b,a,a,a},
                 {a,a,a,b,b,b,b,b,b,a,a,a},
                 {a,a,b,b,a,b,b,a,a,a,a,a},
@@ -188,7 +276,7 @@ public class Labyrinthe{
                 {a,a,b,b,b,b,b,a,a,a,a,a},
                 {a,b,b,a,b,a,a,a,b,a,a,a},
                 {a,a,a,a,b,a,a,a,b,a,b,a},
-                {b,b,b,b,b,b,b,b,b,b,b,a},
+                {a,b,b,b,b,b,b,b,b,b,b,a},
                 {a,a,a,b,a,a,a,b,a,a,a,a},
                 {a,a,a,a,a,a,a,a,a,a,a,a}};
         return tab;
