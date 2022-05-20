@@ -1,20 +1,19 @@
-import java.lang.Math;
-
+import java.util.Random;
 public class Labyrinthe{
 
     private int longueur; 
     private int largeur; 
     private Case[][] lab; 
-    
+    private int nombreFantomes;
     public Labyrinthe(){
         this.longueur = 10; 
         this.largeur = 10; 
-        this.lab = this.remplirtableau1(longueur, largeur);
+        this.lab = this.remplirtableau1();
     }
     public Labyrinthe( int x, int y){
         this.longueur = x; 
         this.largeur = y;
-        this.lab = this.remplirtableau1(x, y);
+        this.lab = this.remplirtableau1();
     }
 
 
@@ -24,22 +23,22 @@ public class Labyrinthe{
         nb = random.nextInt(6);
         Case[][] tab = new Case[10][10];
         if(nb==0){
-            tab=remplirtableau0;
+            tab=remplirtableau0();
         }
         else if(nb==1){
-            tab=remplirtableau1;
+            tab=remplirtableau1();
         }
         else if(nb==2){
-            tab=remplirtableau2;
+            tab=remplirtableau2();
         }
         else if(nb==3){
-            tab=remplirtableau3;
+            tab=remplirtableau3();
         }
         else if(nb==4){
-            tab=remplirtableau4;
+            tab=remplirtableau4();
         }
         else if(nb==5){
-            tab=remplirtableau5;
+            tab=remplirtableau5();
         }
         return tab; 
     }
@@ -50,27 +49,27 @@ public class Labyrinthe{
             int nb;
             nb = random.nextInt(4);
             if(nb==0){ //le fantome va a  gauche
-                if(x-1>-1 && !isMur(x-1,y){
-                    this.tab[x-1][y].fantome=true;
-                    this.tab[x][y].fantome=false;
+                if(x-1>0 && !isMur(x-1,y)){
+                    this.lab[x-1][y].fantome=true;
+                    this.lab[x][y].fantome=false;
                 }
             }
             else if(nb==1){//haut
-                if(y-1>-1 && !isMur(x,y-1){
-                    this.tab[x][y-1].fantome=true;
-                    this.tab[x][y].fantome=false;
+                if(y-1>-1 && !isMur(x,y-1)){
+                    this.lab[x][y-1].fantome=true;
+                    this.lab[x][y].fantome=false;
                 }
             }
             else if(nb==2){//droite
-                if(x+1>-1 && !isMur(x+1,y){
-                    this.tab[x+1][y].fantome=true;
-                    this.tab[x][y].fantome=false;
+                if(x+1>-1 && !isMur(x+1,y)){
+                    this.lab[x+1][y].fantome=true;
+                    this.lab[x][y].fantome=false;
                 }
             }
             else if(nb==3){//bas
-                if(y+1>-1 && !isMur(x,y+1){
-                    this.tab[x][y+1].fantome=true;
-                    this.tab[x][y].fantome=false;
+                if(y+1>-1 && !isMur(x,y+1)){
+                    this.lab[x][y+1].fantome=true;
+                    this.lab[x][y].fantome=false;
                 }
             }
         }
@@ -123,16 +122,18 @@ public class Labyrinthe{
         Case a=new Case(1, false, false);
         Case b=new Case(0, false, false);
         Case[][] tab =
-                {{a,a,a,a,a,a,a,a,a,a},
-                {a,a,b,a,a,a,b,a,a,a},
-                {a,a,b,a,a,a,b,b,b,b},
-                {b,b,b,a,a,a,b,a,a,a},
-                {a,a,b,a,a,a,b,a,a,a},
-                {a,a,b,b,b,b,b,a,a,a},
-                {a,b,b,a,b,a,a,a,b,a},
-                {a,a,a,a,b,a,a,a,b,a},
-                {a,a,a,a,b,b,b,b,b,a},
-                {a,a,a,a,a,a,a,a,a,a}};
+                {{a,a,a,a,a,a,a,a,a,a,a,a},
+                {a,a,b,b,a,a,b,b,a,a,a,a},
+                {a,a,b,a,a,a,b,a,a,a,b,a},
+                {a,a,b,a,a,a,b,b,b,b,b,a},
+                {b,b,b,a,a,a,b,a,a,a,a,a},
+                {a,a,b,a,a,a,b,b,b,a,b,a},
+                {a,a,b,b,b,b,b,a,a,a,b,a},
+                {a,b,b,a,b,a,a,a,b,b,b,a},
+                {a,a,a,a,b,a,a,a,b,a,a,a},
+                {a,a,a,a,b,b,b,b,b,a,a,a},
+                {a,a,a,a,b,a,a,b,b,b,b,a},
+                {a,a,a,a,a,a,a,a,a,a,a,a}};
         return tab;
     }
     
@@ -140,16 +141,18 @@ public class Labyrinthe{
         Case a=new Case(1, false, false);
         Case b=new Case(0, false, false);
         Case[][] tab =
-                {{a,a,a,a,a,a,a,a,a,a},
-                {b,b,b,a,a,a,b,a,a,a},
-                {a,a,b,a,b,b,b,b,b,a},
-                {a,b,b,a,a,a,b,a,a,a},
-                {a,a,b,a,a,a,b,a,a,a},
-                {a,a,b,b,b,b,b,a,a,a},
-                {a,b,b,a,b,a,a,a,b,b},
-                {a,a,b,a,b,a,a,a,b,a},
-                {a,a,b,a,b,b,b,b,b,a},
-                {a,a,a,a,a,a,a,a,a,a}};
+                {{a,a,a,a,a,a,a,a,a,a,a,a},
+                {a,b,b,a,a,a,b,a,a,b,b,a},
+                {a,a,b,a,a,a,b,a,b,b,a,a},
+                {a,a,b,a,b,b,b,b,b,b,b,a},
+                {a,b,b,a,a,a,b,a,a,a,b,a},
+                {a,a,b,a,a,a,b,a,a,a,a,a},
+                {a,a,b,b,b,b,b,a,a,a,b,a},
+                {a,b,b,a,b,a,a,a,b,b,b,a},
+                {a,a,b,a,b,a,a,a,b,a,a,a},
+                {a,a,b,a,b,b,b,b,b,b,b,a},
+                {a,a,b,b,a,a,a,b,b,a,a,a},
+                {a,a,a,a,a,a,a,a,a,a,a,a}};
         return tab;
     }
     
@@ -157,16 +160,18 @@ public class Labyrinthe{
         Case a=new Case(1, false, false);
         Case b=new Case(0, false, false);
         Case[][] tab =
-                {{a,a,a,a,a,a,a,a,a,a},
-                {a,a,b,a,a,a,b,a,a,a},
-                {a,a,b,b,b,a,b,b,b,a},
-                {a,b,b,a,a,a,b,a,a,a},
-                {a,a,b,a,a,a,b,a,b,b},
-                {a,a,b,b,b,b,b,a,b,a},
-                {b,b,b,a,b,a,a,a,b,a},
-                {a,a,a,a,b,a,a,a,b,a},
-                {a,a,a,a,b,b,b,b,b,a},
-                {a,a,a,a,a,a,a,a,a,a}};
+                {{a,a,a,a,a,a,a,a,a,a,a,a},
+                {a,a,b,b,b,a,b,a,a,a,a,a},
+                {a,a,b,a,a,a,b,a,a,b,b,a},
+                {a,a,b,b,b,a,b,b,b,a,b,a},
+                {a,b,b,a,a,a,b,a,a,a,b,a},
+                {a,a,b,a,a,a,b,a,b,b,b,a},
+                {a,a,b,b,b,b,b,a,b,a,b,a},
+                {b,b,b,a,b,a,a,a,b,a,b,a},
+                {a,a,a,a,b,a,a,a,b,a,a,a},
+                {a,a,a,b,b,b,b,b,b,a,a,a},
+                {a,a,b,b,a,b,b,a,a,a,a,a},
+                {a,a,a,a,a,a,a,a,a,a,a,a}};
         return tab;
     }
     
@@ -174,16 +179,18 @@ public class Labyrinthe{
         Case a=new Case(1, false, false);
         Case b=new Case(0, false, false);
         Case[][] tab =
-                {{a,a,a,a,a,a,a,a,a,a},
-                {a,a,b,a,b,a,b,a,a,a},
-                {a,a,b,a,b,a,b,a,a,a},
-                {a,b,b,b,b,a,b,a,a,a},
-                {a,a,b,a,a,a,b,b,b,b},
-                {a,a,b,b,b,b,b,a,a,a},
-                {a,b,b,a,b,a,a,a,b,a},
-                {a,a,a,a,b,a,a,a,b,a},
-                {b,b,b,b,b,b,b,b,b,a},
-                {a,a,a,a,a,a,a,a,a,a}};
+                {{a,a,a,a,a,a,a,a,a,a,a,a},
+                {a,b,b,a,b,b,b,b,b,a,a,a},
+                {a,a,b,a,b,a,b,a,a,a,b,a},
+                {a,a,b,a,b,a,b,a,a,a,b,a},
+                {a,b,b,b,b,a,b,a,a,a,b,a},
+                {a,a,b,a,a,a,b,b,b,b,b,a},
+                {a,a,b,b,b,b,b,a,a,a,a,a},
+                {a,b,b,a,b,a,a,a,b,a,a,a},
+                {a,a,a,a,b,a,a,a,b,a,b,a},
+                {b,b,b,b,b,b,b,b,b,b,b,a},
+                {a,a,a,b,a,a,a,b,a,a,a,a},
+                {a,a,a,a,a,a,a,a,a,a,a,a}};
         return tab;
     }
     
@@ -191,16 +198,18 @@ public class Labyrinthe{
         Case a=new Case(1, false, false);
         Case b=new Case(0, false, false);
         Case[][] tab =
-                {{a,a,a,a,a,a,a,a,a,a},
-                {a,a,b,a,a,a,b,b,b,a},
-                {a,a,b,a,a,a,b,a,b,a},
-                {a,b,b,a,a,a,b,a,b,b},
-                {a,a,b,a,a,a,b,a,a,a},
-                {a,a,b,b,b,b,b,a,a,a},
-                {b,b,b,a,b,a,a,a,b,a},
-                {a,a,b,a,b,a,a,a,b,a},
-                {a,b,b,a,b,b,b,b,b,a},
-                {a,a,a,a,a,a,a,a,a,a}};
+                {{a,a,a,a,a,a,a,a,a,a,a,a},
+                {a,a,b,b,b,b,a,a,a,a,a,a},
+                {a,a,b,a,a,a,b,b,b,a,a,a},
+                {a,a,b,a,a,a,b,a,b,b,b,a},
+                {a,b,b,a,a,a,b,a,b,b,a,a},
+                {a,a,b,a,a,a,b,a,a,a,b,a},
+                {a,a,b,b,b,b,b,a,a,a,b,a},
+                {a,b,b,a,b,a,a,a,b,a,b,a},
+                {a,a,b,a,b,a,a,a,b,b,b,a},
+                {a,b,b,a,b,b,b,b,b,a,b,a},
+                {a,b,a,a,a,b,b,a,a,b,b,a},
+                {a,a,a,a,a,a,a,a,a,a,a,a}};
         return tab;
     }
 
@@ -224,6 +233,25 @@ public class Labyrinthe{
         }
         return false;
     }
+    public void enleverFantome(int x, int y){
+        if(this.lab[x][y].enleverFantome()){
+            this.nombreFantomes -=1;
+        }
+    }
 
+    public void placerFantome(int nb ){
+        int a = this.nombreFantomes;
+        int rand = new Random().nextInt((lab[0].length-1))+1;//nombre aléatoire entre 1 et 11.
+        int rand2 = new Random().nextInt((lab[0].length))+1;
+       
+        for(int i = 0; i<nb; i++){
+            while (!isGhost(rand, rand2)){
+                rand = new Random().nextInt((lab[0].length-1))+1;
+                rand2 = new Random().nextInt((lab[0].length))+1;
+           }
+           lab[rand][rand2].fantome = true;
+        }
+        
+    }
 }
    

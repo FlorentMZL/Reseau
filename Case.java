@@ -14,5 +14,13 @@ public class Case{
         this.joueur=j;
         this.fantome=f;
     }
-    
+    public boolean enleverFantome(){
+        if (this.fantome){
+            this.fantome = false;
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 }
