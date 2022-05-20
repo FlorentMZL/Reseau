@@ -146,7 +146,7 @@ public class ThreadClass implements Runnable{
                             for (Partie p : listeParties.getListe()){
                                 if (p.getlisteJoueurs().contains(this.j1)){
                                     supprimerJoueur(p,this.j1);
-                                    this.verifStart(p);
+                                    this.verifStart(p, pw);
                                     this.j1 = null;
                                     numpartiesup = p.getNumero();
                                     break;
@@ -228,7 +228,7 @@ public class ThreadClass implements Runnable{
                     if (suite.equals("**")&&j1!=null){
                         j1.getPartie().startJoueur(j1);
                         if (j1.getPartie().getLock()){
-                           System.out.println("out va bien ici"); //this.startPartie(j1.getPartie());
+                           System.out.println("out va bien ici"); //this.startPartie(j1.getPartie(), pw);
                         }
                     }
                     else {
@@ -328,17 +328,17 @@ public class ThreadClass implements Runnable{
             }
         }
     }
-    public void verifStart(Partie p){
+    public void verifStart(Partie p, PrintWriter pw){
         if (p.verifStart()){
-            this.startPartie(p);
+            this.startPartie(p, pw);
         }
     }
     public void supprimerPartie (Partie p){
         this.listeParties.remove(p);
     }
-    public void startPartie(Partie p){
-
-    }
+    public void startPartie(Partie p, PrintWriter pw){
+        String [] ll = p.longueurLargeur();
+        pw.print("WELCO " + (char)p.getNumero()+ " " +ll[0]+ " " + ll[1]+" " + p.getLab().getNbGhost() );
     public String getCommande(String s){
         String a = "";
         for(int i = 0; i<s.length()-2;i++){

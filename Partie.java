@@ -4,6 +4,7 @@ import javax.swing.plaf.synth.SynthCheckBoxMenuItemUI;
 public class Partie {
     private int numero; //Numero de la partie
     private int [] tailleLab; //Taille du labyrinthe
+    private Labyrinthe lab;
     private int nbJoueurs; 
     private ArrayList<Joueur> joueurNonValide; //Joueurs n'ayant pas envoyé start
     private ArrayList<Joueur> listeJoueurs; //Joueurs inscrits dans la partie (peu importe s'ils ont envoyé start)
@@ -21,6 +22,9 @@ public class Partie {
     public Partie(Joueur j){
         listeJoueurs.add(j);
         joueurNonValide.add(j);
+    }
+    public Labyrinthe getLab(){
+        return this.lab;
     }
     public int[] getTaille (){
         return this.tailleLab;

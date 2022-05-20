@@ -9,9 +9,14 @@
 #include <fcntl.h>
 #include <inttypes.h>
 #include <ctype.h>
-
+#include <pthread.h>
 char* port_number = "4444";
 
+typedef struct attributsPartie{
+    char* adresseIp;
+    int port;
+
+}attributsPartie;
 
 /*
 char* substr(const char *s, int m, int n){
@@ -34,8 +39,8 @@ int recevoirNbGmes (int descr){
     char buff1[3];
     int recu = recv(descr,hellorec,6, 0 );
     hellorec[recu]='\0';
-    int qs=recv(descr, &a,sizeof(uint8_t), 0);
-    int qsda = recv(descr, buff1, 3, 0);
+    recv(descr, &a,sizeof(uint8_t), 0);
+     recv(descr, buff1, 3, 0);
     return a; 
 }
 
@@ -44,11 +49,11 @@ void afficherparties(int descr, uint8_t nombre){
     uint8_t num; 
     uint8_t joueursInscrits;
     for(char i = 0; i<nombre; i++){
-        int recu = recv(descr, bufOGAME, 6, 0);
-        int recuNumero = recv(descr, &num, sizeof(uint8_t), 0);
+        recv(descr, bufOGAME, 6, 0);
+        recv(descr, &num, sizeof(uint8_t), 0);
         recv(descr, bufOGAME, 1, 0);
-        int recuJoueurs = recv(descr, &joueursInscrits, sizeof(uint8_t), 0);
-        int recu = recv(descr, bufOGAME, 3,0);
+        recv(descr, &joueursInscrits, sizeof(uint8_t), 0);
+        recv(descr, bufOGAME, 3,0);
         printf ("Partie %" PRIu8 ": % " PRIu8 " joueurs inscrits.\n", num, joueursInscrits);
     }
 
@@ -65,16 +70,18 @@ void afficherUsage(){
     -6 -pseudo -m : rejoint la partie m avec un pseudo de 8 caractères alphanumeriques\n");
     
 }
-void unreg(int descr){
+int unreg(int descr){
     char repBuf[11];
-    int envoi = send(descr, "UNREG***",8,0 ); 
+    send(descr, "UNREG***",8,0 ); 
     int recu = recv(descr, repBuf, 10, 0 );
     repBuf[recu] = '\0';
     if (strlen(repBuf)==8){
         printf("Vous n'etes inscrit à aucune partie.\n");
+        return 0;
     }
     else {
         printf("Vous avez été désinscrit.\n");
+        return 0;
     }
 }
 
@@ -141,7 +148,7 @@ void recevoirDim( int descr, int num){
 
     }
 }
-void creatPartie(int descr, char id []){
+int creatPartie(int descr, char id []){
     char* envoi = "NEWPL ";
     char bufenvoi[22];
     strcpy(bufenvoi, envoi);
@@ -157,14 +164,16 @@ void creatPartie(int descr, char id []){
     int recu = recv(descr, bufrec, 10,0 );
     if (recu == 8){//On verifie si c'est un REGNO
         printf("erreur lors de la création de partie\n");
+        return 0;
     }
     else {
         bufrec[recu] = '\0';
         int a = (int) bufrec[6];
         printf("Vous avez créé la partie de numéro %d\n", a);
+        return 1;
     }
 }
-    void joinPartie(int descr, char id[], int m){
+int joinPartie(int descr, char id[], int m){
     
     char *envoi = "REGIS ";
     char bufenvoi [24];
@@ -183,10 +192,112 @@ void creatPartie(int descr, char id []){
     int recu = recv(descr, bufrec, 10,0 );
     if (recu == 8){//On verifie si c'est un REGNO
         printf("erreur de connexion a la partie\n");
+        return 0;
     }
     else {
         bufrec[recu] = '\0';
         int a = (int) bufrec[6];
         printf("Vous avez rejoint la partie de numéro %d\n", a);
+        return 1;
     }
 }
+void sendStart(int descr){
+    send(descr, "START***", 8,0);
+}
+void *ecouteMulticast(void *arg){
+    attributsPartie partie = *((attributsPartie*)arg);
+    int sock = socket(PF_INET, SOCK_DGRAM,0);
+    int ok = 1; 
+    int r = setsockopt(sock, SOL_SOCKET,SO_REUSEPORT,&ok,sizeof(ok));
+    struct sockaddr_in address_sock;
+    address_sock.sin_family = AF_INET;
+    address_sock.sin_port=htons(partie.port);
+    address_sock.sin_addr.s_addr = htonl(INADDR_ANY);
+    r = bind(sock,(struct sockaddr *)&address_sock, sizeof (struct sockaddr_in));
+    struct ip_mreq mreq;
+    mreq.imr_multiaddr.s_addr = partie.adresseIp;
+    mreq.imr_interface.s_addr=htonl(INADDR_ANY);
+    r=setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
+    if (r==0){
+    char tampon[100];
+        while(1){
+            int rec = recv(sock, tampon, 100, 0);
+            tampon[rec] = '\0';
+            printf("Message recu : %s\n", tampon);
+    
+        }
+    }
+}
+void *ecouteUDP(void *arg){
+    int port = *((int*)arg);
+    int sock = socket(PF_INET, SOCK_DGRAM, 0);
+    struct sockaddr_in address_sock;
+    address_sock.sin_family= AF_INET;
+    address_sock.sin_port= htons(port);
+    address_sock.sin_addr.s_addr=htonl(INADDR_ANY);
+    int r = bind(sock,(struct sockaddr *)&address_sock,sizeof(struct sockaddr_in));
+    if (r==0){
+        char tampon [100];
+        while(1){
+            int rec = recv(sock, tampon, 100, 0);
+            tampon[rec] = '\0';
+            printf("Message recu : %s\n", tampon);
+        }
+    }
+}
+
+void recupInfosStart(int descr){
+    char bufIP [16];
+    char poubelle[10];
+    char bufPORT[5];
+    recv(descr,poubelle, 8,0);
+    uint16_t hauteur;
+    uint16_t largeur;
+    uint8_t fantomes; 
+    recv(descr, &hauteur, sizeof(uint16_t), 0);
+    recv(descr, poubelle, 1, 0);
+    recv(descr, &largeur, sizeof(uint16_t),0);
+    recv(descr, poubelle, 1, 0);
+    recv(descr, &fantomes, sizeof(uint8_t),0);
+    recv(descr, poubelle, 1, 0);
+    int recu = recv(descr, bufIP, 15, 0);
+    bufIP[recu]='\0';
+    for(int i = strlen(bufIP); i>0;i--){
+        if (bufIP[i]!='#'){
+            bufIP[i+1]='\0';
+            break;
+        }
+    }
+    recv(descr, poubelle,1,0);
+    recu = recv(descr,bufPORT, 4, 0 );
+    recv(descr, poubelle, 3,0);
+    bufPORT[recu]='\0';
+    int portInt = atoi(bufPORT);
+    attributsPartie p = {
+        .adresseIp = bufIP,
+        .port = portInt
+        
+        };
+    pthread_t thMulticast;
+    pthread_t thUDP ;
+    pthread_create(&thUDP, NULL, ecouteUDP, &portInt);
+    pthread_create(&thMulticast, NULL, ecouteMulticast,&p );
+    char position[20];
+    recv(descr, position,15,0 );
+    char coordX[4];
+    char coordY[4];
+    recu=recv(descr, coordX, 3, 0);
+    coordX[recu] = '\0';
+    recv(descr, poubelle, 1,0);
+    recu = recv(descr, coordY, 3,0);
+    coordY[recu] = '\0';
+    recv(descr, poubelle, 3,0);
+    int coordXInt = atoi(coordX);
+    int coordYInt = atoi (coordY);
+    printf("Taille du labyrinthe : %" PRIu16 "lignes, %" PRIu16 " colonnes.\n", hauteur, largeur);
+    printf("Position de départ : ligne %d, colonne %d. Il y a %" PRIu8 " fantomes\n", coordXInt, coordYInt, fantomes);
+
+
+
+}    
+

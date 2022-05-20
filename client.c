@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
     int start = 0; 
     char bufScan [20];
     int nombreparties = recevoirNbGmes(descr);
-   
+    int joined = 0;//Savoir si le joueur a rejoint une partie ou pas
     printf("Il y a %d parties en attente\n",nombreparties );
 
     afficherparties(descr, nombreparties);
@@ -35,20 +35,28 @@ int main(int argc, char **argv) {
        if (strlen(bufScan)==1){
         switch (bufScan[0]){
           case '2' :
-          unreg(descr);
+            unreg(descr);
           case '1' : 
-          send(descr, "GAME?***", 8,0);
-          char hellorec[7];
-          uint8_t a;
-          char buff1[4];
-          int recu = recv(descr,hellorec,6, 0 );
-          hellorec[recu]='\0';
-          int qs=recv(descr, &a,sizeof(uint8_t), 0);
-          int qsda = recv(descr, buff1, 3, 0);
-          printf("GAMES %" PRIu8 "\n" , a);
-          afficherparties(descr, a);
-           
+            send(descr, "GAME?***", 8,0);
+            char hellorec[7];
+            uint8_t a;
+            char buff1[4];
+            int recu = recv(descr,hellorec,6, 0 );
+            hellorec[recu]='\0';
+            int qs=recv(descr, &a,sizeof(uint8_t), 0);
+            int qsda = recv(descr, buff1, 3, 0);
+            printf("GAMES %" PRIu8 "\n" , a);
+            afficherparties(descr, a);
+          case'7' : 
+            if (joined ==0){
+              printf("vous n'avez pas rejoint de partie\n");
 
+            }
+            else {
+              sendStart(descr);
+              printf("en attente du démarrage de la partie.\n")
+              recupInfosStart(descr);
+            }
         }
       }
       else {
@@ -72,6 +80,7 @@ int main(int argc, char **argv) {
           else if (bufScan[0]=='3'){
             recevoirDim(descr, valeurInt);
           }
+        
         }
         else{
           int longueur = strlen(bufScan);
@@ -90,7 +99,7 @@ int main(int argc, char **argv) {
           intS[j]='\0';
           if (alph==1){
             if (bufScan[0]=='5'){
-              creatPartie(descr, intS);
+             joined= creatPartie(descr, intS);
             }         
             else if (bufScan[0] == '6'){
               j=0;
@@ -106,7 +115,7 @@ int main(int argc, char **argv) {
             printf("erreur de syntaxe");
           }
           
-          joinPartie(descr, intS, numpartieI);
+          joined = joinPartie(descr, intS, numpartieI);
             }
           }
 
@@ -114,6 +123,7 @@ int main(int argc, char **argv) {
             printf("Caracteres non alphanumeriques\n");
           }
         }
+
       }
     }
   return 0;
