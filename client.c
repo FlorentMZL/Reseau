@@ -1,12 +1,29 @@
 #include "ast.h"
 
+
 int port = 4242;
+char ip[50];
 int main(int argc, char **argv) {
+    if (argc==2){
+      port = atoi(argv[1]);
+      char *ipR = "127.0.0.1";
+      strcpy(ip, ipR);
+    }
+    else if (argc==3){
+      port = atoi(argv[1]);
+      char ipR [strlen(argv[2])-1] ;
+      strcpy(ipR, argv[2]);
+      ipR[strlen(argv[2])]='\0';
+      strcpy(ip, ipR);
+    }
+    else{
+      strcpy(ip, "127.0.0.1");
+    }
 
     struct sockaddr_in adress_sock;
     adress_sock.sin_family = AF_INET;
     adress_sock.sin_port = htons(port);
-    inet_aton("127.0.0.1",&adress_sock.sin_addr);
+    inet_aton(ip,&adress_sock.sin_addr);
     int descr=socket(PF_INET,SOCK_STREAM,0);
     if (descr<0){
       perror("socket");
