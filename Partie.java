@@ -6,6 +6,7 @@ public class Partie {
     private int [] tailleLab; //Taille du labyrinthe
     public Labyrinthe lab;
     private int nbJoueurs;
+    private Joueur leader;
     private String port = "6543";
     public boolean finished;
     private String ipMult;
@@ -21,6 +22,7 @@ public class Partie {
         listeJoueurs.add(j);
         joueurNonValide.add(j);
         lock = false;
+        this.leader=j;
         this.lab = new Labyrinthe(5);
     }
 
@@ -30,6 +32,12 @@ public class Partie {
     }
     public Labyrinthe getLab(){
         return this.lab;
+    }
+    public void setLeader(Joueur j){
+        this.leader=j;
+    }
+    public Joueur getLeader(){
+        return this.leader;
     }
     public void setIP(String s){
         this.ipMult = s;

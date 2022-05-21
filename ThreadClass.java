@@ -47,15 +47,16 @@ public class ThreadClass implements Runnable{
                 }
                 String bufS = new String (buf);
                 String bufCommande = getCommande(bufS);
+                System.out.println("SERVEUR : Commande reçue : "+bufCommande);
                 System.out.println(bufCommande);
                 String req1 = bufCommande.substring(0,6);
                 String suite = bufCommande.substring(6,bufCommande.length());
 
                 if (req1.equals("NEWPL ")){
-                  
-                    
                     if (this.j1 != null){
-                        pw.print("REGNO***");
+                        String envoiClient = "REGNO***";
+                        pw.print(envoiClient);
+                        System.out.println("SERVEUR : Commande envoyée : "+envoiClient);
                         pw.flush();
                     }
                     else{
@@ -69,12 +70,16 @@ public class ThreadClass implements Runnable{
                             Partie nouvelle = new Partie(a, this.j1);
                             j1.setPartie(nouvelle);
                             addPartie(nouvelle);
-                            pw.print("REGOK "+ (char)nouvelle.getNumero());
+                            String envoiClient = "REGOK " + (char)nouvelle.getNumero()+"***";
+                            pw.print(envoiClient);
+                            System.out.println("SERVEUR : Commande envoyée : "+ envoiClient);
                             pw.flush();
                             
                         }
                         else {
-                            pw.print("REGNO***");
+                            String envoiClient = "REGNO***";
+                            pw.print(envoiClient);
+                            System.out.println("SERVEUR : Commande envoyée : "+ envoiClient);
                             pw.flush();
                         }
                     }         
@@ -108,7 +113,9 @@ public class ThreadClass implements Runnable{
                                     this.j1 = new Joueur(idString, portString);
                                     p.ajouterJoueur(this.j1);
                                     j1.setPartie(p);
-                                    pw.print("REGOK "+ (char)p.getNumero());
+                                    String envoiClient = "REGOK "+(char)p.getNumero();
+                                    pw.print(envoiClient);
+                                    System.out.println("SERVEUR : Commande envoyée : "+ envoiClient);
                                     pw.flush();
                                     check = true;
                                     break;
@@ -116,7 +123,9 @@ public class ThreadClass implements Runnable{
                             
                             }
                             if (!check){
-                                pw.print("REGNO***");
+                                String envoiClient="REGNO***";
+                                pw.print(envoiClient);
+                                System.out.println("SERVEUR : Commande envoyée : "+ envoiClient);
                                 pw.flush();
                             }
                         }
@@ -124,7 +133,9 @@ public class ThreadClass implements Runnable{
                    
                     else{
                         System.out.println(suite);
-                        pw.print("REGNO***");
+                        String envoiClient="REGNO***";
+                        pw.print(envoiClient);
+                        System.out.println("SERVEUR : Commande envoyée : "+ envoiClient);
                         pw.flush();
                     }
                     
@@ -135,7 +146,9 @@ public class ThreadClass implements Runnable{
                    
                     if (suite.equals("**")){
                         if (this.j1 == null){
-                            pw.print("DUNNO***");
+                            String envoiClient = "DUNNO***";
+                            pw.print(envoiClient);
+                            System.out.println("SERVEUR : Commande envoyée : "+ envoiClient);
                             pw.flush();
                             
                         }
@@ -150,16 +163,19 @@ public class ThreadClass implements Runnable{
                                     break;
                                 }
                             }
-                            
-                            pw.print("UNROK " + (char)numpartiesup + "***");
+                            String envoiClient = "UNROK " + (char)numpartiesup + "***";
+                            pw.print(envoiClient);
+                            System.out.println("SERVEUR : Commande envoyée : "+ envoiClient);
                             pw.flush();
                         }
                         
                     }
                     else{
-                        pw.print("DUNNO***");
+                        String envoiClient = "DUNNO***";
+                        pw.print(envoiClient);
+                        System.out.println("SERVEUR : Commande envoyée : "+envoiClient);
                         pw.flush();
-                        System.out.println( "probleme sah");
+                       
                     }
 
                 }
@@ -174,7 +190,9 @@ public class ThreadClass implements Runnable{
                 else if (req1.equals("LIST? ")){
                     
                     if (!checkEtoiles(suite)||this.j1!=null){
-                        pw.print("DUNNO***");
+                        String envoiClient = "DUNNO***";
+                        pw.print(envoiClient);
+                        System.out.println("SERVEUR : Commande envoyée : "+envoiClient);
                         pw.flush();
                     }
                     else {
@@ -190,7 +208,9 @@ public class ThreadClass implements Runnable{
                             }
                         }
                         if (!check){
-                            pw.print("DUNNO***");
+                            String envoiClient = "DUNNO***";
+                            pw.print(envoiClient);
+                            System.out.println("SERVEUR : Commande envoyée : "+envoiClient);
                             pw.flush();
                         }
                     }
@@ -198,8 +218,9 @@ public class ThreadClass implements Runnable{
                 else if(req1.equals("SIZE? ")) {
                    
                     if(!checkEtoiles(suite)||this.j1!=null){
-                        System.out.println(suite);
-                        pw.print("DUNNO***");
+                        String envoiClient = "DUNNO***";
+                        pw.print(envoiClient);
+                        System.out.println("SERVEUR : Commande envoyée : "+envoiClient);
                         pw.flush();
                     }
 
@@ -209,16 +230,36 @@ public class ThreadClass implements Runnable{
                         for(Partie p : listeParties.getListe()){
                             if(p.getNumero()==numeroPartie){
                                 String [] ll = p.longueurLargeur();
-                                pw.print("SIZE? "+ (char)numeroPartie + " " + ll[0]+ " " + ll[1] + "***");
+                                String envoiClient = "SIZE? "+ (char)numeroPartie + " " + ll[0]+ " " + ll[1] + "***";
+                                pw.print(envoiClient);
+                                System.out.println("SERVEUR : Commande envoyée : "+envoiClient);
                                 pw.flush();   
                                 check = true;
                             }
                             break;
                         }
                         if (!check){
-                            pw.print("DUNNO***");
+                            String envoiClient = "DUNNO***";
+                            pw.print(envoiClient);
+                            System.out.println("SERVEUR : Commande envoyée : "+envoiClient);
                             pw.flush();
                         }
+                    }
+                }
+                else if (req1.equals("NBFAN ")){
+                    if (checkEtoiles(suite)&&j1!=null&&j1.getPartie().getLeader()==j1){
+                        int nombref = (int)suite.substring(0,1).charAt(0);
+                        j1.getPartie().getLab().setFantomes(nombref);
+                        String retour = "FANOK***";
+                        pw.print(retour);
+                        pw.flush();
+                        System.out.println("SERVEUR : commande envoyée : " + retour);
+                    }
+                    else {
+                        String retour = "DUNNO***";
+                        pw.print(retour);
+                        System.out.println("SERVEUR : commande envoyée : " + retour);
+                        pw.flush();
                     }
                 }
                 else if (req1.equals("START*")){
@@ -283,13 +324,14 @@ public class ThreadClass implements Runnable{
     }
     private void envoiGames (PrintWriter pw){
         synchronized(listeParties){
-        String gamesEnvoi = "GAMES ";
+        String envoiClient = "GAMES ";
             
-            gamesEnvoi = "GAMES " + (char)listeParties.nonCommencées();
-            gamesEnvoi = gamesEnvoi + "***";
+            envoiClient = "GAMES " + (char)listeParties.nonCommencées();
+            envoiClient= envoiClient + "***";
             
-            pw.print(gamesEnvoi);
             
+            pw.print(envoiClient);
+            System.out.println("SERVEUR : Commande envoyée : "+ envoiClient);
             pw.flush();
             String envoieListeGames = "";
             
@@ -297,16 +339,21 @@ public class ThreadClass implements Runnable{
                 if(!p.getLock()){
                 envoieListeGames = "OGAME " + (char)p.getNumero() + " " + (char)p.getNbJoueurs() + "***"; 
                 pw.print(envoieListeGames);  
+                System.out.println("SERVEUR : Commande envoyée : "+  envoieListeGames);
                 pw.flush();
                 }
             }
         }
     }
     private void listerJoueurs(Partie p, PrintWriter pw){
-        pw.print("LIST? "+ (char)p.getNumero() + " "+(char)p.getNbJoueurs()+"***");
+        String envoiClient = "LIST? "+ (char)p.getNumero() + " "+(char)p.getNbJoueurs()+"***";
+        pw.print(envoiClient);
+        System.out.println("SERVEUR : Commande envoyée : "+ envoiClient);
         pw.flush();
        for(Joueur j : p.getlisteJoueurs()){
-            pw.print("PLAYR "+ j.getId()+"***");
+           String envoiJoueurN = "PLAYR "+ j.getId()+"***";
+           pw.print(envoiJoueurN);
+           System.out.println("SERVEUR : Commande envoyée : "+ envoiJoueurN);
             pw.flush();
         }
         
@@ -371,9 +418,13 @@ public class ThreadClass implements Runnable{
         try{
             DatagramSocket dso = new DatagramSocket();
             byte[] data = s.getBytes();
+            System.out.println(p.getIP());
+            System.out.println(p.getPort());
             InetSocketAddress ia = new InetSocketAddress(p.getIP(),Integer.parseInt(p.getPort()));
             DatagramPacket paquet = new DatagramPacket(data, data.length, ia);
+            System.out.println();
             dso.send(paquet);
+            System.out.println("Multicast : message envoyé : "+s);
             dso.close();
         }catch (Exception e){
             System.out.println(e);
@@ -395,6 +446,9 @@ public class ThreadClass implements Runnable{
             p.finished=true;
             diffusion_multicast(p, "ENDGA " + meilleur.getId() + " " + completerPos(maxF)+ "+++");
         }
+        else if (p.getlisteJoueurs().size()==0){
+            p.finished=true;
+        }
     }
     public void retournemouvememnt(Partie p, PrintWriter pw, String mov, int nombrecases){
         Random r = new Random();
@@ -402,7 +456,7 @@ public class ThreadClass implements Runnable{
         if (rand == 0){
             Fantome [] a =p.lab.mouvementGhost();
             int i = 0;
-            while(a[i]!=null){
+            while(i<a.length&&a[i]!=null){
                
                 diffusion_multicast(p, "GHOST "+ completerPos(a[i].getX())+ " "+ completerPos(a[i].getY())+"+++");
                 i+=1;
@@ -451,6 +505,7 @@ public class ThreadClass implements Runnable{
             InetSocketAddress ia = new InetSocketAddress("255.255.255.255", Integer.parseInt(port));
             DatagramPacket paquet = new DatagramPacket(data, data.length, ia);
             dso.send(paquet);
+            System.out.println("UDP : diffusion personnelle : "+ concat);
             dso.close();
             
             return 1;
@@ -466,11 +521,16 @@ public class ThreadClass implements Runnable{
         
             String [] ll = p.longueurLargeur();
             String multidif = remplir(p.getIP());
-            pw.print("WELCO " + (char)p.getNumero()+ " " +ll[0]+ " " + ll[1]+" " + (char)p.getLab().getNbGhost()+" " +multidif +" "+ p.getPort()+ "***");
+            System.out.println(p.getIP());
+            String envoiClient = "WELCO " + (char)p.getNumero()+ " " +ll[0]+ " " + ll[1]+" " + (char)p.getLab().getNbGhost()+" " +multidif +" "+ p.getPort()+ "***";
+            pw.print(envoiClient);
+            System.out.println("SERVEUR : Commande envoyée : "+ envoiClient);
             pw.flush();
             int[] coordonnées =p.getLab().placerJoueur(this.j1);
             p.getLab().afficheLabyrinthe();
-            pw.print("POSIT " + j1.getId() + " "+ completerPos(coordonnées[0]) + " " + completerPos(coordonnées[1]) + "***");
+            String envoiePos = "POSIT " + j1.getId() + " "+ completerPos(coordonnées[0]) + " " + completerPos(coordonnées[1]) + "***";
+            pw.print(envoiePos);
+            System.out.println("SERVEUR : Commande envoyée : "+ envoiePos);
             pw.flush();
             char[] lireReq = new char[220];
             while(end==false&&!socket.isClosed()){
@@ -480,11 +540,9 @@ public class ThreadClass implements Runnable{
                     break;
                 }
                 String bufS = new String (lireReq);
-                System.out.println(lireReq);
                 String bufCommande = getCommande(bufS);
-                System.out.println(bufCommande);
+                System.out.println("SERVEUR : Commande reçue : "+bufCommande);
                 String req1 = bufCommande.substring(0,6);
-                System.out.println(req1);
                 String suite = bufCommande.substring(6,bufCommande.length()); 
                 if (req1.equals("UPMOV ")&&p.finished==false){
                     
@@ -504,7 +562,10 @@ public class ThreadClass implements Runnable{
                     retournemouvememnt(p, pw, "D", nombrecases);    
                 }
                 else if (req1.equals("IQUIT*")||p.finished == true){
-                    pw.print("GOBYE***");
+                    String envoiBye = "GOBYE***";
+                    pw.print(envoiBye);
+                    System.out.println("SERVEUR : Commande envoyée : "+ envoiBye);
+                    pw.flush();
                     try {
                         this.socket.close();
                     }catch (Exception e){
@@ -515,13 +576,16 @@ public class ThreadClass implements Runnable{
                 else if (req1.equals("GLIS?*")&&p.finished==false){
                     synchronized (p.getlisteJoueurs()){
                         int joueurspresents = p.getlisteJoueurs().size();
-                        System.out.println("recu");
-                        pw.print("GLIS! "+(char)joueurspresents+"***");
-                        System.out.println("recu");
+                        
+                        String envoiGlis = "GLIS! "+(char)joueurspresents+"***";
+                        pw.print(envoiGlis);
+                        System.out.println("SERVEUR : Commande envoyée : "+ envoiGlis);
                         pw.flush();
-                        System.out.println("recu");
+                        
                         for(Joueur j : p.getlisteJoueurs()){
-                            pw.print("GLYPR "+j.getId() + " "+ completerPos(j.getX())+ " "+ completerPos(j.getY())+" "+ completerPos(j.nbFantomes)+"***");
+                            String envoiglyp="GLYPR "+j.getId() + " "+ completerPos(j.getX())+ " "+ completerPos(j.getY())+" "+ completerPos(j.nbFantomes)+"***";
+                            pw.print(envoiglyp);
+                            System.out.println("SERVEUR : Commande envoyée : "+ envoiglyp);
                             pw.flush();
                         }
 
@@ -534,7 +598,7 @@ public class ThreadClass implements Runnable{
                     String suiteSansEtoiles = suite.substring(0, suite.length()-3);
 
                     if (!(suiteSansEtoiles.contains("***")||suiteSansEtoiles.contains("+++"))){
-                        diffusion_multicast(p, "MESSA " + this.j1.getId() + " " + suiteSansEtoiles+"+++");
+                        diffusion_multicast(p,"MESSA " + this.j1.getId() + " " + suiteSansEtoiles+"+++");
                     }
 
                 }
@@ -543,11 +607,15 @@ public class ThreadClass implements Runnable{
                     System.out.println(suiteSansEtoiles);
                     int a =diffusion_udp(p,suiteSansEtoiles.substring(0,8), suiteSansEtoiles.substring(9,suiteSansEtoiles.length()));
                     if (a==0){
-                        pw.print("NSEND***");
+                        String sendS = "NSEND***";
+                        pw.print(sendS);
+                        System.out.println("SERVEUR : Commande envoyée : "+ sendS);
                         pw.flush();
                     }
                     if(a!=0){
-                        pw.print("SEND!***");
+                        String sendS = "SEND!***";
+                        pw.print(sendS);
+                        System.out.println("SERVEUR : Commande envoyée : "+ sendS);
                         pw.flush();
                     }
                 }

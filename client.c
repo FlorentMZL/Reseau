@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     while (start ==0){
 
       afficherUsage();
-      int lireEntree = fgets(bufScan, 20,stdin); 
+      fgets(bufScan, 20,stdin); 
       bufScan[strlen(bufScan)-1]='\0';//fgets lit les retours a la ligne donc on enleve le dernier caractere
      
        if (strlen(bufScan)==1){
@@ -44,8 +44,8 @@ int main(int argc, char **argv) {
             char buff1[4];
             int recu = recv(descr,hellorec,6, 0 );
             hellorec[recu]='\0';
-            int qs=recv(descr, &a,sizeof(uint8_t), 0);
-            int qsda = recv(descr, buff1, 3, 0);
+            recv(descr, &a,sizeof(uint8_t), 0);
+            recv(descr, buff1, 3, 0);
             printf("GAMES %" PRIu8 "\n" , a);
             afficherparties(descr, a);
             break;
@@ -65,14 +65,10 @@ int main(int argc, char **argv) {
       else {
         int longueur = strlen(bufScan);
         if (longueur <=5){
+          
           int l = longueur - 2; 
-          char intS [l+1] ;
-          int j = 0;
-          for(int i = 2; i<longueur && bufScan[i]!='\0';i++){
-            intS[j]  = bufScan[i];
-            j++;
-          }
-          intS[longueur] = '\0';
+          char *intS = malloc(l+1);
+          intS = substr(bufScan, 2,longueur);
           int valeurInt = atoi(intS);
           if (valeurInt == 0){
             printf("erreur de syntaxe\n");
@@ -83,11 +79,13 @@ int main(int argc, char **argv) {
           else if (bufScan[0]=='3'){
             recevoirDim(descr, valeurInt);
           }
+          else if (bufScan[0]=='8'){
+            setFantomes(descr, valeurInt);
+          }
         
         }
         else{
           int longueur = strlen(bufScan);
-          printf("%s\n",bufScan);
           int l = 8; 
           char intS [l+1] ;
           int j = 0;

@@ -18,10 +18,10 @@ typedef struct attributsPartie{
 
 }attributsPartie;
 
-/*
-char* substr(const char *s, int m, int n){
+
+char* substr(char s [], int m, int n){
     int longueur = n-m;
-    char dest [longueur+1];
+    char *dest =malloc(longueur+1);
     int j = 0;
     for(int i = m; i<n && s[i]!='\0'; i++){
         dest[j] = s[i];
@@ -29,7 +29,7 @@ char* substr(const char *s, int m, int n){
     }
     dest[j]='\0';
     return dest;
-}*/
+}
 
 
 int recevoirNbGmes (int descr){
@@ -66,9 +66,10 @@ void afficherUsage(){
     -2 : Se désinscrire de la partie sélectionnée\n\
     -3 -m : Demander la taille du labyrinthe d'une partie m \n\
     -4 -m : Demander la liste des joueurs inscrits à une partie m \n\
-    -5 -pseudo : Créer une partie. pseudo de 8 caractères alphanumeriques\n\
-    -6 -pseudo -m : rejoint la partie m avec un pseudo de 8 caractères alphanumeriques\n\
-    -7 : \"start\" la partie. N'est utilisable que si vous etes dans une partie\n ");
+    -5 -pseudo -port : Créer une partie. pseudo de 8 caractères alphanumeriques\n\
+    -6 -pseudo -port -m : rejoint la partie m avec un pseudo de 8 caractères alphanumeriques\n\
+    -7 : \"start\" la partie. N'est utilisable que si vous etes dans une partie\n\
+    -8 -m : Ajuster le nombre de fantomes à m. Seulement si vous avez créé la partie\n ");
     
 }
 int unreg(int descr){
@@ -172,6 +173,7 @@ int creatPartie(int descr, char id [], char port[]){
         bufrec[recu] = '\0';
         int a = (int) bufrec[6];
         printf("Vous avez créé la partie de numéro %d\n", a);
+        
         return 1;
     }
 }
@@ -203,6 +205,25 @@ int joinPartie(int descr, char id[], char port[], int m){
         return 1;
     }
 }
+void setFantomes(int descr, int n){
+    char* envoi = "NBFAN ";
+    char bufenvoi[10];
+    strcpy(bufenvoi, envoi);
+    char b = n;
+    bufenvoi[6] = b;
+    bufenvoi[9]='*';
+    bufenvoi[8]='*';
+    bufenvoi[7]='*';
+    send(descr, bufenvoi,10,0);
+    char bufrec[8];
+    recv(descr, bufrec,8,0);
+    if (bufrec[0]=='D'){
+        printf("Erreur de modification des fantomes");
+    }
+    else{
+        printf("Fantomes modifiés. ");
+    }
+}
 void sendStart(int descr){
     send(descr, "START***", 8,0);
 }
@@ -213,7 +234,7 @@ void *ecouteMulticast(void *arg){
     int ok = 1; 
     int r = setsockopt(sock, SOL_SOCKET,SO_REUSEPORT,&ok,sizeof(ok));
     if (r<0){
-        printf("erreur setsockopt");
+        printf("erreur setsockopt\n");
         exit(1);
     }
     printf("%d\n", partie.port);
@@ -223,34 +244,81 @@ void *ecouteMulticast(void *arg){
     address_sock.sin_addr.s_addr = htonl(INADDR_ANY);
     r = bind(sock,(struct sockaddr *)&address_sock, sizeof (struct sockaddr_in));
     if (r<0){
-        printf("erreur binding multicast");
+        printf("erreur binding multicast\n");
+        return NULL;
     }
     else {
     
-    struct ip_mreq mreq;
-    printf("%s\n",partie.adresseIp);
-    mreq.imr_multiaddr.s_addr = inet_addr(partie.adresseIp);
-    mreq.imr_interface.s_addr=htonl(INADDR_ANY);
-    r=setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
-    if (r<0){
-        printf("erreur setsockopt multicast\n");
-    }
-    if (r==0){
-    char tampon[100];
-        while(1){
-           
-            int rec = recv(sock, tampon, 100, 0);
-            tampon[rec] = '\0';
-            printf("Message recu : %s\n", tampon);
-    
+        struct ip_mreq mreq;
+        printf("%s\n", partie.adresseIp);
+        mreq.imr_multiaddr.s_addr = inet_addr(partie.adresseIp);
+        mreq.imr_interface.s_addr=htonl(INADDR_ANY);
+        r=setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
+        if (r<0){
+            printf("erreur setsockopt multicast\n");
         }
-    }
+        if (r==0){
+        char tampon[100];
+            while(1){
+                int rec = recv(sock, tampon, 100, 0);
+                if (tampon[0]=='M'&&strcmp(tampon+rec-3,"+++")==0){
+                
+                tampon[rec] = '\0';
+                char *id = malloc(9);
+                id = substr(tampon, 6,14);
+                
+                tampon[rec-3]='\0';
+                    printf("Message recu de %s : %s \n",id,tampon+15);
+                free(id);
+                }
+                else if (tampon[0]=='E'&&strcmp(tampon+rec-3, "+++")==0){
+                    printf("Partie terminée.\n");
+                    
+                    char *id = malloc(9);
+                    id = substr(tampon, 6,14);
+                    tampon[rec-3]='\0';
+                    char pointsG [5];
+                    strcpy(pointsG, tampon+15);
+                    int nbPointsG = atoi(pointsG);
+                    
+                    printf("Gagnant : %s, avec %d points.\n", id, nbPointsG);
+                    free(id);
+                }
+                else if (tampon[0]=='S'&&strcmp(tampon+rec-3,"+++")==0){
+                    char *id = malloc(9);
+                    id = substr(tampon, 6,14);
+                    char *pointsG = malloc(5);
+                    char *xJ = malloc(4);
+                    char *yJ= malloc(4);
+
+                    pointsG=substr(tampon, 15,19);
+                    xJ = substr(tampon,20,23 );
+                    yJ = substr(tampon, 24,27);
+                    int xjI = atoi(xJ);
+                    int yJI=atoi(yJ);
+                    printf("Le joueur %s a capturé un fantome en position (%d,%d)\n", id, xjI, yJI);
+                    free(id);
+                    free(pointsG);
+                    free(xJ);
+                    free(yJ);
+                }
+                else if (tampon[0]=='G'&& strcmp(tampon+rec-3,"+++")==0){
+                    char *xJ = malloc(4);
+                    char *yJ= malloc(4);
+                    xJ = substr(tampon, 6,9);
+                    yJ = substr(tampon, 10,13);
+                    int xJI = atoi(xJ);
+                    int yJI= atoi(yJ);
+                    printf("Fantome en mouvement : (%d,%d)\n", xJI, yJI);
+                }
     
-    }return ;
+            }
+        }
+    
+    } 
+    return NULL;
 }
 void *ecouteUDP(void *arg){
-    
-    printf("port : %s\n", port_number);
     int sock = socket(PF_INET, SOCK_DGRAM, 0);
     struct sockaddr_in address_sock;
     address_sock.sin_family= AF_INET;
@@ -258,25 +326,30 @@ void *ecouteUDP(void *arg){
     address_sock.sin_addr.s_addr=htonl(INADDR_ANY);
     int r = bind(sock,(struct sockaddr *)&address_sock,sizeof(struct sockaddr_in));
     if (r<0){
-        printf("erreur binding udp");
+        printf("erreur binding udp\n");
         exit(1);
     }
     if (r==0){
-        printf("on ecoute la\n");
         char tampon [100];
         while(1){
-            int rec = recv(sock, tampon, 100, 0);
-            tampon[rec] = '\0';
-            printf("Message recu : %s\n", tampon);
+             int rec = recv(sock, tampon, 100, 0);
+                tampon[rec] = '\0';
+                char* id = malloc(9);
+                id= substr(tampon, 6,14);
+               
+                tampon[rec-3]='\0';
+                printf("Message recu de %s : %s\n",id,tampon+15);
+                free(id);
+            }
+          
         }
-    }
-    return;
+    
+    return NULL;
 }
 void recevoirPos(int descr){
     char bufRecu[21];
         recv(descr,bufRecu, 6, 0);
         bufRecu[7] = '\0'; 
-        printf("%s\n",bufRecu);
         if (bufRecu[4]=='!'){
             char xpos[4];
             char ypos[4];
@@ -289,7 +362,7 @@ void recevoirPos(int descr){
         int ynew = atoi(ypos);
         recv(descr,bufRecu,3,0 );//"***"
 
-        printf("Nouvelle position : ligne %d, colonne %d. ", xnew, ynew);
+        printf("Nouvelle position : ligne %d, colonne %d. \n", xnew, ynew);
     }
     else{
         char xpos [4];
@@ -307,7 +380,7 @@ void recevoirPos(int descr){
         nbPoints[recpoints]='\0';
         int nbPts = atoi(nbPoints);
         recv(descr, bufRecu, 3,0);//"***"
-        printf("Fantome attrapé! Nouvelle position : ligne %d, colonne %d. %d Points", xnew, ynew, nbPts);
+        printf("Fantome attrapé! Nouvelle position : ligne %d, colonne %d. %d Points\n", xnew, ynew, nbPts);
     }
 }
 void glisCom(int descr){
@@ -343,10 +416,21 @@ void glisCom(int descr){
         posXI = atoi(posX);
         posYI = atoi(posY);
         nbFI = atoi(nbF);
-        printf("Joueur %d : %s, ligne %d, colonne %d, nombre de points : %d.",i+1, identite, posXI, posYI, nbFI);
+        printf("Joueur %d : %s, ligne %d, colonne %d, nombre de points : %d.\n",i+1, identite, posXI, posYI, nbFI);
         recv(descr,bufRec, 3,0);
     }
 }
+void envoiDirection(char s[], int descr, char intS[]){
+    char bufenvoi [12];
+    bufenvoi[0] = '\0';
+    strcat (bufenvoi, s);
+    strcat(bufenvoi, intS);
+    bufenvoi[11] = '*';
+    bufenvoi[10] = '*';
+    bufenvoi[9]='*';
+    send(descr, bufenvoi, sizeof(bufenvoi), 0);
+}
+
 
 void recupInfosStart(int descr){
     char bufIP [16];
@@ -370,7 +454,6 @@ void recupInfosStart(int descr){
             break;
         }
     }
-    printf("ici IP %s\n",bufIP);
   
     recv(descr, poubelle,1,0);
     recu = recv(descr,bufPORT, 4, 0 );
@@ -402,7 +485,7 @@ void recupInfosStart(int descr){
     printf("Taille du labyrinthe : %" PRIu16 "lignes, %" PRIu16 " colonnes.\n", hauteur, largeur);
     printf("Position de départ : ligne %d, colonne %d. Il y a %" PRIu8 " fantomes\n", coordXInt, coordYInt, fantomes);
     while(1==1){
-    printf("**********\n");
+    printf("\n**********\n");
     printf("Commandes : \n\
     z -n: se déplacer de n cases vers le haut\n\
     s -n : se déplacer de n cases vers le bas \n\
@@ -414,7 +497,7 @@ void recupInfosStart(int descr){
     p -id -message: envoyer un message au joueur id\n");
     char bufScan[300];
 
-    int lireEntree = fgets(bufScan, 300,stdin);
+     fgets(bufScan, 300,stdin);
     bufScan[strlen(bufScan)-1]='\0';
     if (bufScan[0]=='m'){
         int longueurB = strlen(bufScan);
@@ -444,7 +527,7 @@ void recupInfosStart(int descr){
 
         }
         else{
-            printf("Le message a été envoyé");
+            printf("Le message a été envoyé\n");
         }
     }
     else if (strlen(bufScan)==1){
@@ -460,7 +543,7 @@ void recupInfosStart(int descr){
     }
     else if (strlen(bufScan)<=5){// si on a recu un message de la forme "z/q/s/d n"
         int longueur = strlen(bufScan);
-        
+         
           char intS [4] ;
           int j = 2;
           for(int i = longueur-1; i>=2;i--){
@@ -476,55 +559,19 @@ void recupInfosStart(int descr){
 
        
             if (bufScan[0]== 'z') {
-                char bufenvoi [12];
-                bufenvoi[0] = '\0';
-                strcat (bufenvoi, "UPMOV ");
-                strcat(bufenvoi, intS);
-                bufenvoi[11] = '*';
-                bufenvoi[10] = '*';
-                bufenvoi[9]='*';
-                send(descr, bufenvoi, sizeof(bufenvoi), 0);
+                envoiDirection("UPMOV ", descr, intS);
                 recevoirPos(descr);
             }
             else if (bufScan[0]=='s'){ 
-                char bufenvoi [12];
-                bufenvoi[0] = '\0';
-                strcat (bufenvoi, "DOMOV ");
-                
-                bufenvoi[6] = '\0';
-                printf("%s\n", bufenvoi);
-                strcat(bufenvoi, intS);
-                bufenvoi[11] = '*';
-                bufenvoi[10] = '*';
-                bufenvoi[9]='*';
-                send(descr, bufenvoi, sizeof(bufenvoi), 0);
+                envoiDirection("DOMOV ", descr, intS);
                 recevoirPos(descr);
             }
             else if (bufScan[0]=='q'){ 
-                char bufenvoi [12];
-                bufenvoi[0] = '\0';
-                strcat (bufenvoi, "LEMOV ");
-                bufenvoi[6] = '\0';
-                printf("%s\n", bufenvoi);
-                strcat(bufenvoi, intS);
-                bufenvoi[11] = '*';
-                bufenvoi[10] = '*';
-                bufenvoi[9]='*';
-                send(descr, bufenvoi, sizeof(bufenvoi), 0);
+                envoiDirection("LEMOV ", descr, intS);
                 recevoirPos(descr);
             }
             else if (bufScan[0]=='d'){ 
-                char bufenvoi [12];
-                bufenvoi[0] = '\0';
-                strcat (bufenvoi, "RIMOV ");
-                bufenvoi[6] = '\0';
-                printf("%s\n", bufenvoi);
-                strcat(bufenvoi, intS);
-                
-                bufenvoi[11] = '*';
-                bufenvoi[10] = '*';
-                bufenvoi[9]='*';
-                send(descr, bufenvoi, sizeof(bufenvoi), 0);
+                envoiDirection("RIMOV ", descr, intS);
                 recevoirPos(descr);
             }
             
