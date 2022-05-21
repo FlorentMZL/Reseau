@@ -32,8 +32,8 @@ public class Joueur {
     public void setPartie(Partie p){
         this.p = p;
     }
-    public void ajouterFantome(){
-        this.nbFantomes+=1;
+    public void ajouterFantome(int n){
+        this.nbFantomes+=n;
         
     }
     public void setX(int x){

@@ -1,10 +1,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import java.nio.*;
-import java.nio.charset.Charset;
-import java.lang.*;
-import java.math.BigInteger;
+
 public class ThreadClass implements Runnable{
     public Socket socket; 
     private ListepartiesClass listeParties;
@@ -17,16 +14,7 @@ public class ThreadClass implements Runnable{
         this.j1 = null;
 
     }
-    public byte[] concatBytes (byte[] t1, byte[] t2){
-        byte[] t3 = new byte[t1.length + t2.length];
-        for(int i = 0; i<t1.length; i++){
-            t3[i] = t1[i];
-        }
-        for (int j = t1.length +1; j< t3.length; j++){
-            t3[j]=t2[j-t1.length-1];
-        }
-        return t3;
-    } 
+    
     
     public void run(){
         try{ 
@@ -48,19 +36,18 @@ public class ThreadClass implements Runnable{
                 String bufS = new String (buf);
                 String bufCommande = getCommande(bufS);
                 System.out.println("SERVEUR : Commande reçue : "+bufCommande);
-                System.out.println(bufCommande);
-                String req1 = bufCommande.substring(0,6);
+                String req1 = bufCommande.substring(0,6);//On divise la commande de manière a avoir la commande et les args
                 String suite = bufCommande.substring(6,bufCommande.length());
 
-                if (req1.equals("NEWPL ")){
-                    if (this.j1 != null){
+                if (req1.equals("NEWPL ")){//SI on reçoit NEWPL
+                    if (this.j1 != null){//Si le joueur est déjà dans une partie
                         String envoiClient = "REGNO***";
                         pw.print(envoiClient);
                         System.out.println("SERVEUR : Commande envoyée : "+envoiClient);
                         pw.flush();
                     }
                     else{
-                        String idString = suite.substring(0,8);
+                        String idString = suite.substring(0,8);//On récupere l'id et le port
                         String portString = suite.substring(9,13);
                         
                         if (checkPort(portString)){
@@ -84,6 +71,9 @@ public class ThreadClass implements Runnable{
                         }
                     }         
                 }
+
+
+
                 else if (req1.equals("REGIS ")){
                     
                     
@@ -94,13 +84,14 @@ public class ThreadClass implements Runnable{
                         String portString = suite.substring(9,13);
                         
                         int numeroPartie = (int)suite.substring(14,15).charAt(0);
-                        if (checkPort(portString)){
+                        if (checkPort(portString)){//On vérifie si le port est conforme
                             boolean check = false;
                             boolean portcheck = false;
                             for(Partie p :listeParties.getListe()){
                                 System.out.println(p.getNumero());
                                 System.out.println(numeroPartie);
-                                if (!p.getLock()&&p.getNumero()== numeroPartie){
+                                if (!p.getLock()&&p.getNumero()== numeroPartie){//On vérifie si la partie est disponible
+                                                                                //Et si le port n'est pas déjà pris
                                     for(Joueur j : p.getlisteJoueurs()){
                                         if (j.getPort().equals(portString)||j.getId().equals(idString)){
                                             System.out.println("Meme port/id");
@@ -151,7 +142,7 @@ public class ThreadClass implements Runnable{
                 else if (req1.equals("UNREG*")){
                    
                     if (suite.equals("**")){
-                        if (this.j1 == null){
+                        if (this.j1 == null){//SI le joue n'a pas de partie
                             String envoiClient = "DUNNO***";
                             pw.print(envoiClient);
                             System.out.println("SERVEUR : Commande envoyée : "+ envoiClient);
@@ -160,7 +151,7 @@ public class ThreadClass implements Runnable{
                         }
                         else{
                             int numpartiesup =0;
-                            for (Partie p : listeParties.getListe()){
+                            for (Partie p : listeParties.getListe()){//On récupere le numéro de la partie 
                                 if (p.getlisteJoueurs().contains(this.j1)){
                                     supprimerJoueur(p,this.j1);
                                     this.verifStart(p, pw, br);
@@ -205,7 +196,6 @@ public class ThreadClass implements Runnable{
 
                         boolean check = false;
                         int numeroPartie = (int)suite.substring(0,1).charAt(0);
-                        System.out.println(numeroPartie);
                         for (Partie p : listeParties.getListe()){
                             if (p.getNumero()==numeroPartie){
                                 listerJoueurs(p,pw);
@@ -213,7 +203,7 @@ public class ThreadClass implements Runnable{
                                 break;
                             }
                         }
-                        if (!check){
+                        if (!check){//Si la partie n'existe pas
                             String envoiClient = "DUNNO***";
                             pw.print(envoiClient);
                             System.out.println("SERVEUR : Commande envoyée : "+envoiClient);
@@ -221,7 +211,7 @@ public class ThreadClass implements Runnable{
                         }
                     }
                 }
-                else if(req1.equals("SIZE? ")) {
+                else if(req1.equals("SIZE? ")) {//meme principe que pour list.
                    
                     if(!checkEtoiles(suite)||this.j1!=null){
                         String envoiClient = "DUNNO***";
@@ -235,7 +225,7 @@ public class ThreadClass implements Runnable{
                         int numeroPartie = (int)suite.substring(0,1).charAt(0);
                         for(Partie p : listeParties.getListe()){
                             if(p.getNumero()==numeroPartie){
-                                String [] ll = p.longueurLargeur();
+                                String [] ll = p.longueurLargeur();//On récupère les dimensions
                                 String envoiClient = "SIZE? "+ (char)numeroPartie + " " + ll[0]+ " " + ll[1] + "***";
                                 pw.print(envoiClient);
                                 System.out.println("SERVEUR : Commande envoyée : "+envoiClient);
@@ -252,8 +242,8 @@ public class ThreadClass implements Runnable{
                         }
                     }
                 }
-                else if (req1.equals("NBFAN ")){
-                    if (checkEtoiles(suite)&&j1!=null&&j1.getPartie().getLeader()==j1){
+                else if (req1.equals("NBFAN ")){//Option pour rajouter/supprimer des fantomes
+                    if (checkEtoiles(suite)&&j1!=null&&j1.getPartie().getLeader().equals(j1)){
                         int nombref = (int)suite.substring(0,1).charAt(0);
                         j1.getPartie().getLab().setFantomes(nombref);
                         String retour = "FANOK***";
@@ -266,6 +256,29 @@ public class ThreadClass implements Runnable{
                         pw.print(retour);
                         System.out.println("SERVEUR : commande envoyée : " + retour);
                         pw.flush();
+                    }
+                }
+                else if (req1.equals("TEAMS*")){
+                    if (suite.equals("**")&&j1!=null&& j1.getPartie().getLeader().equals(j1)){
+                        j1.getPartie().activTeams();
+                        if(j1.getPartie().getTeam()){
+                            String retour = "TEAM!***";
+                            pw.print(retour);
+                            pw.flush();
+                            System.out.println("SERVEUR : commande envoyée : "+ retour);
+                        }
+                        else{
+                            String retour = "TEAMN***" ;
+                            pw.println(retour);
+                            pw.flush();
+                            System.out.println("SERVEUR : commande envoyée :" + retour);
+                        }
+                    }
+                    else{
+                        String retour = "TEAMN***" ;
+                            pw.println(retour);
+                            pw.flush();
+                            System.out.println("SERVEUR : commande envoyée :" + retour);
                     }
                 }
                 else if (req1.equals("START*")){
@@ -440,17 +453,44 @@ public class ThreadClass implements Runnable{
     }
     public void checkEndPartie(Partie p){
         if (p.getLab().getNbGhost()<=0){
-            int maxF = 0;
-            Joueur meilleur = null;
-            for (Joueur j : p.getlisteJoueurs()){
-                if (j.nbFantomes > maxF){
-                    meilleur = j;
-                    maxF = j.nbFantomes;
-                }
+            if (!p.getTeam()){
+                int maxF = 0;
+                Joueur meilleur = null;
+                for (Joueur j : p.getlisteJoueurs()){
+                    if (j.nbFantomes > maxF){
+                        meilleur = j;
+                        maxF = j.nbFantomes;
+                    }
 
+                }
+                p.finished=true;
+                diffusion_multicast(p, "ENDGA " + meilleur.getId() + " " + completerPos(maxF)+ "+++");
             }
-            p.finished=true;
-            diffusion_multicast(p, "ENDGA " + meilleur.getId() + " " + completerPos(maxF)+ "+++");
+            else {
+                int max1=0;
+                int max2 = 0;
+                for (Joueur j : p.getTeams()[0]){
+                    if (j!=null){
+                        max1 +=j.nbFantomes;
+                    }
+                    else{
+                        break;
+                    }
+                }
+                for (Joueur j : p.getTeams()[1]){
+                    if (j!=null){
+                        max2+=j.nbFantomes;
+                    }
+                }
+                if (max1>max2){
+                    diffusion_multicast(p, "ENDGA " + "EQUIPE 1" + " " + completerPos(max1)+ "+++");    
+                }
+                else {
+                    diffusion_multicast(p, "ENDGA " + "EQUIPE 2" + " " + completerPos(max2)+ "+++");    
+                }
+                p.finished=true;
+            }
+            
         }
         else if (p.getlisteJoueurs().size()==0){
             p.finished=true;
@@ -537,7 +577,8 @@ public class ThreadClass implements Runnable{
             pw.print(envoiePos);
             System.out.println("SERVEUR : Commande envoyée : "+ envoiePos);
             pw.flush();
-            
+            p.setTeams();
+
             while(end==false&&!socket.isClosed()){
                 char[] lireReq = new char[220];
             try { 

@@ -7,6 +7,9 @@ public class Partie {
     public Labyrinthe lab;
     private int nbJoueurs;
     private Joueur leader;
+    private boolean team;
+    private boolean set;
+    private Joueur[][] teams;
     private String port = "6543";
     public boolean finished;
     private String ipMult;
@@ -24,14 +27,23 @@ public class Partie {
         lock = false;
         this.leader=j;
         this.lab = new Labyrinthe(5);
+        team = false;
+        set=false;
+        
     }
 
     public Partie(Joueur j){
         listeJoueurs.add(j);
         joueurNonValide.add(j);
     }
+    public Joueur[][] getTeams(){
+        return this.teams;
+    }
     public Labyrinthe getLab(){
         return this.lab;
+    }
+    public boolean getTeam(){
+        return this.team;
     }
     public void setLeader(Joueur j){
         this.leader=j;
@@ -144,9 +156,38 @@ public class Partie {
         }
         return this.lock;
     }
-    //int[] placerJoueur(Joueur j){
-      //  return this.lab.placerJoueur(j);
-    //}    
-    
+    public void activTeams(){
+        this.team = !team;
+    }
+    synchronized public void setTeams(){
+        System.out.println(set);
+        System.out.println("dsq");
+        System.out.println(team);
+        if (set == false){
+            set = true;//Pour que les autres threads ne fassent rien a part le premier. 
+            if (team){
+                System.out.println("rentré 1");
+                this.teams = new Joueur[2][this.listeJoueurs.size()];
+                int i = 0; 
+                int k = 0;
+                for(Joueur j : this.listeJoueurs){
+                    System.out.println("rentré");
+                    i = i%2;
+                    teams[i][k]=j;
+                    if (i==0){
+                        k+=1;
+                    }
+                    i++;
+
+
+                }
+            
+            }
+
+        }
+        
+    }   
+
+   
 }
 

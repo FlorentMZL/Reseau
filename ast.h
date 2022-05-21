@@ -32,10 +32,10 @@ char* substr(char s [], int m, int n){
 }
 
 
-int recevoirNbGmes (int descr){
+uint8_t recevoirNbGmes (int descr){
 
     char hellorec[7];
-    int a;
+    uint8_t a;
     char buff1[3];
     int recu = recv(descr,hellorec,6, 0 );
     hellorec[recu]='\0';
@@ -69,7 +69,8 @@ void afficherUsage(){
     -5 -pseudo -port : Créer une partie. pseudo de 8 caractères alphanumeriques\n\
     -6 -pseudo -port -m : rejoint la partie m avec un pseudo de 8 caractères alphanumeriques\n\
     -7 : \"start\" la partie. N'est utilisable que si vous etes dans une partie\n\
-    -8 -m : Ajuster le nombre de fantomes à m. Seulement si vous avez créé la partie\n ");
+    -8 -m : Ajuster le nombre de fantomes à m. Seulement si vous avez créé la partie\n\
+    -9 : Créer des equipes aleatoires\n ");
     
 }
 int unreg(int descr){

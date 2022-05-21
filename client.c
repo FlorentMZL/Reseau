@@ -37,9 +37,9 @@ int main(int argc, char **argv) {
     }
     int start = 0; 
     char bufScan [20];
-    int nombreparties = recevoirNbGmes(descr);
+    uint8_t nombreparties = recevoirNbGmes(descr);
     int joined = 0;//Savoir si le joueur a rejoint une partie ou pas
-    printf("Il y a %d parties en attente\n",nombreparties );
+    printf("Il y a % "PRIu8 "d parties en attente\n",nombreparties );
 
     afficherparties(descr, nombreparties);
     
@@ -77,6 +77,17 @@ int main(int argc, char **argv) {
               recupInfosStart(descr);
             }
             break;
+          case '9':
+            send(descr, "TEAMS***", 8,0);
+            char recteam[8];
+            recv(descr, recteam, 8,0);
+            if (recteam[4]=='!'){
+              printf("Partie par équipes !\n");
+            }
+            else{
+              printf("Pas d'équipes!\n");
+            }
+            break;
         }
       }
       else {
@@ -99,6 +110,7 @@ int main(int argc, char **argv) {
           else if (bufScan[0]=='8'){
             setFantomes(descr, valeurInt);
           }
+          
         
         }
         else{
