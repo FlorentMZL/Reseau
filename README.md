@@ -98,5 +98,12 @@ L'architecture de notre projet:
     a la création des fantomes. 
     Les commandes reçues par le serveur sont traitées comme indiqué dans le protocole.
 
+    Options : Le créateur d'une partie peut décider du nombre de fantomes : il envoie "NBFAN n***" ou n est un entier sur 1 octet. Le serveur répond "FANOK***" si le nombre a été mis a jour. "DUNNO***" sinon.
+    Le créateur peut décider s'il y aura des équipes. Si il  envoie "TEAMS***", alors en fonction de si la partie etait
+    deja avec des equipes ou pas, elle met son boolean team à jour. Si team etait true, alors il devient false, et inversement. Le serveur renvoie "TEAMN***" si il n'y a pas d'équipes, "TEAM!***" si il y en a. 
+
+    En jeu, le joueur peut savoir son numéro d'équipe en envoyait "MTEAM***". Le serveur lui répond "NTEAM***" si il n'y a
+    pas d'équipes, "YTEAM n***" sinon, ou n est un entier sur 1 octet (0 ou 1 en l'occurence car il n'y a que deux équipes)
 
 
+    Le serveur et le client ont été testés avec des clients/Serveurs d'autres groupes et il n'y a pas eu d'erreurs importantes. 

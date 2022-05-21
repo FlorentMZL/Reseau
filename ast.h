@@ -302,6 +302,7 @@ void *ecouteMulticast(void *arg){
                     
                     printf("Gagnant : %s, avec %d points.\n", id, nbPointsG);
                     free(id);
+                    exit(0);
                 }
                 else if (tampon[0]=='S'&&strcmp(tampon+rec-3,"+++")==0){
                     char *id = malloc(9);
@@ -371,6 +372,7 @@ void recevoirPos(int descr){
         bufRecu[7] = '\0'; 
         if (bufRecu[0]=='G'){
             printf("partie finie\n");
+            exit(0);
         }
         else if (bufRecu[4]=='!'){
             char xpos[4];
