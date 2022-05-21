@@ -521,7 +521,6 @@ public class ThreadClass implements Runnable{
         
             String [] ll = p.longueurLargeur();
             String multidif = remplir(p.getIP());
-            System.out.println(p.getIP());
             String envoiClient = "WELCO " + (char)p.getNumero()+ " " +ll[0]+ " " + ll[1]+" " + (char)p.getLab().getNbGhost()+" " +multidif +" "+ p.getPort()+ "***";
             pw.print(envoiClient);
             System.out.println("SERVEUR : Commande envoyée : "+ envoiClient);
@@ -532,8 +531,9 @@ public class ThreadClass implements Runnable{
             pw.print(envoiePos);
             System.out.println("SERVEUR : Commande envoyée : "+ envoiePos);
             pw.flush();
-            char[] lireReq = new char[220];
+            
             while(end==false&&!socket.isClosed()){
+                char[] lireReq = new char[220];
             try { 
                 if (br.read(lireReq)==-1){
                     removeAll(j1);

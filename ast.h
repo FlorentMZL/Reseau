@@ -500,13 +500,17 @@ void recupInfosStart(int descr){
      fgets(bufScan, 300,stdin);
     bufScan[strlen(bufScan)-1]='\0';
     if (bufScan[0]=='m'){
+        printf("%s\n ", bufScan);
+        
         int longueurB = strlen(bufScan);
-        char envoimsg [longueurB+6+1];
+        char envoimsg [longueurB+6+1+1];
         strcpy(envoimsg,"MALL? ");
         strcat(envoimsg, bufScan+2);
         envoimsg[longueurB + 6]='*';
         envoimsg[longueurB+5]='*';
         envoimsg[longueurB+4]='*';
+        envoimsg[longueurB+6+1+1]='\0';
+        printf("%s\n", envoimsg);
         send(descr, envoimsg,longueurB+6+1, 0);
 
     }
