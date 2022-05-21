@@ -76,18 +76,34 @@ void afficherUsage(){
 int unreg(int descr){
     char repBuf[11];
     send(descr, "UNREG***",8,0 ); 
-    int recu = recv(descr, repBuf, 10, 0 );
+    int recu = recv(descr, repBuf, 10, 0 );//On reçoit la réponse du serveur
     repBuf[recu] = '\0';
-    if (strlen(repBuf)==8){
+    if (strlen(repBuf)==8){//taille 8 = message d'erreur
         printf("Vous n'etes inscrit à aucune partie.\n");
         return 0;
     }
-    else {
+    else {// pas message d'erreur = message de confirmation
         printf("Vous avez été désinscrit.\n");
         return 0;
     }
 }
+void savoirEquipe(int descr){
+        send(descr, "MTEAM***", 8,0);
+        char buf[10];
+        recv(descr, buf, 10,0);
+        if (buf[0]=='N'){ //si il n'y a pas d'équipes
+            printf("Pas d'équipes !\n");
+        }
+        
+        else{
+            char a = buf[6];
+            int b = (int)a;
+            printf("Vous etes dans l'équipe %d\n", b+1);
+        }
+        
+    
 
+}
 void listeJoueurs(int descr, int num){
     char a = num;
     char buf[10];
@@ -498,9 +514,12 @@ void recupInfosStart(int descr){
     q -n : se déplacer de n cases vers la gauche\n\
     d -n : se déplacer de n cases vers la droite\n\
     g : lister tous les joueurs de la partie \n\
+    t : savoir dans quelle équipe vous etes (si il a des equipes)\n\
     l : quitter la partie\n\
     m -message : envoyer un message a tous les joueurs\n\
     p -id -message: envoyer un message au joueur id\n");
+
+
     char bufScan[300];
 
      fgets(bufScan, 300,stdin);
@@ -549,6 +568,9 @@ void recupInfosStart(int descr){
         }
         else if (bufScan[0]=='g'){
             glisCom(descr);
+        }
+        else if (bufScan[0]=='t'){
+            savoirEquipe(descr);
         }
     }
     else if (strlen(bufScan)<=5){// si on a recu un message de la forme "z/q/s/d n"

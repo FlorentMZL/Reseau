@@ -4,7 +4,7 @@
 int port = 4242;
 char ip[50];
 int main(int argc, char **argv) {
-    if (argc==2){
+    if (argc==2){//ON récupere les arguments s'il y en a
       port = atoi(argv[1]);
       char *ipR = "127.0.0.1";
       strcpy(ip, ipR);
@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
     char bufScan [20];
     uint8_t nombreparties = recevoirNbGmes(descr);
     int joined = 0;//Savoir si le joueur a rejoint une partie ou pas
-    printf("Il y a % "PRIu8 "d parties en attente\n",nombreparties );
+    printf("Il y a % "PRIu8 " parties en attente\n",nombreparties );
 
     afficherparties(descr, nombreparties);
     
@@ -51,10 +51,10 @@ int main(int argc, char **argv) {
      
        if (strlen(bufScan)==1){
         switch (bufScan[0]){
-          case '2' :
+          case '2' ://UNREG
             unreg(descr);
             break;
-          case '1' : 
+          case '1' : //GAME?
             send(descr, "GAME?***", 8,0);
             char hellorec[7];
             uint8_t a;
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
             printf("GAMES %" PRIu8 "\n" , a);
             afficherparties(descr, a);
             break;
-          case'7' : 
+          case'7' : //START
             if (joined ==0){
               printf("vous n'avez pas rejoint de partie\n");
 
@@ -92,10 +92,10 @@ int main(int argc, char **argv) {
       }
       else {
         int longueur = strlen(bufScan);
-        if (longueur <=5){
+        if (longueur <=5){//Si c'est une commande avec arguments
           
           int l = longueur - 2; 
-          char *intS = malloc(l+1);
+          char *intS = malloc(l+1);//On récupère l'argument
           intS = substr(bufScan, 2,longueur);
           int valeurInt = atoi(intS);
           if (valeurInt == 0){
@@ -113,13 +113,13 @@ int main(int argc, char **argv) {
           
         
         }
-        else{
+        else{//Si il y a plus de caractères c'est pour créer ou rejoindre une partie
           int longueur = strlen(bufScan);
           int l = 8; 
           char intS [l+1] ;
           int j = 0;
           int alph = 1;//boolean
-          for(int i = 2; i<10 && bufScan[i]!='\0';i++){
+          for(int i = 2; i<10 && bufScan[i]!='\0';i++){//ON récupere l'id
             if (!isalnum(bufScan[i])){
               alph = 0;
             }
@@ -129,7 +129,7 @@ int main(int argc, char **argv) {
           intS[j]='\0';
           char port[5];
           j = 0; 
-          for (int i = 11; i<15&&bufScan[i]!='\0';i++){
+          for (int i = 11; i<15&&bufScan[i]!='\0';i++){ //On récupere le port
               port[j]=bufScan[i];
               j++;
             }

@@ -258,7 +258,7 @@ public class ThreadClass implements Runnable{
                         pw.flush();
                     }
                 }
-                else if (req1.equals("TEAMS*")){
+                else if (req1.equals("TEAMS*")){//Option pour rajouter équipes
                     if (suite.equals("**")&&j1!=null&& j1.getPartie().getLeader().equals(j1)){
                         j1.getPartie().activTeams();
                         if(j1.getPartie().getTeam()){
@@ -324,12 +324,18 @@ public class ThreadClass implements Runnable{
             listeParties.add(p);
         }
     }
+
+
+
     private boolean checkEtoiles(String s){
         if (s.substring(s.length()-3, s.length()).equals("***")){
             return true;
         }
         else return false;
     }
+
+
+
     private boolean checkPort(String s){
         
         try {
@@ -341,6 +347,9 @@ public class ThreadClass implements Runnable{
         }
         return false;
     }
+
+
+
     private void envoiGames (PrintWriter pw){
         synchronized(listeParties){
         String envoiClient = "GAMES ";
@@ -364,6 +373,9 @@ public class ThreadClass implements Runnable{
             }
         }
     }
+
+
+
     private void listerJoueurs(Partie p, PrintWriter pw){
         String envoiClient = "LIST? "+ (char)p.getNumero() + " "+(char)p.getNbJoueurs()+"***";
         pw.print(envoiClient);
@@ -377,6 +389,9 @@ public class ThreadClass implements Runnable{
         }
         
     }
+
+
+
     private void supprimerJoueur(Partie p, Joueur j){
         if (p.getlisteJoueurs().contains(j)){
             p.supprimerJoueur(j);
@@ -388,6 +403,9 @@ public class ThreadClass implements Runnable{
         }
 
     }
+
+
+
     private void removeAll(Joueur j){
         for (Partie p : listeParties.getListe()){
             if (p.getlisteJoueurs().contains(j)){
@@ -399,14 +417,22 @@ public class ThreadClass implements Runnable{
             }
         }
     }
+
+
+
     public void verifStart(Partie p, PrintWriter pw, BufferedReader br){
         if (p.verifStart()){
             this.startPartie(p, pw, br);
         }
     }
+
+
+
     public void supprimerPartie (Partie p){
         this.listeParties.remove(p);
     }
+
+
   
     public String getCommande(String s){
         String a = "";
@@ -418,6 +444,9 @@ public class ThreadClass implements Runnable{
         }
         return a ;
     }
+
+
+
     public String remplir(String s){
         while(s.length()<15){
             s = s+"#";
@@ -425,6 +454,9 @@ public class ThreadClass implements Runnable{
         }
         return s;
     }
+
+
+
     public String completerPos(int a){
         String s = Integer.toString(a);
         while(s.length()!=3){
@@ -433,6 +465,9 @@ public class ThreadClass implements Runnable{
         return s;
 
     }
+
+
+
     public void diffusion_multicast(Partie p,String s){
         try{
             DatagramSocket dso = new DatagramSocket();
@@ -451,6 +486,9 @@ public class ThreadClass implements Runnable{
         }
 
     }
+
+
+
     public void checkEndPartie(Partie p){
         if (p.getLab().getNbGhost()<=0){
             if (!p.getTeam()){
@@ -496,6 +534,9 @@ public class ThreadClass implements Runnable{
             p.finished=true;
         }
     }
+
+
+
     public void retournemouvememnt(Partie p, PrintWriter pw, String mov, int nombrecases){
         Random r = new Random();
         int rand = r.nextInt(2);
@@ -641,7 +682,7 @@ public class ThreadClass implements Runnable{
                 
                 }
                 else if (req1.equals("MALL? ")){
-                    System.out.println(suite);
+                    
                     String suiteSansEtoiles = suite.substring(0, suite.length()-3);
 
                     if (!(suiteSansEtoiles.contains("***")||suiteSansEtoiles.contains("+++"))){
@@ -664,6 +705,21 @@ public class ThreadClass implements Runnable{
                         pw.print(sendS);
                         System.out.println("SERVEUR : Commande envoyée : "+ sendS);
                         pw.flush();
+                    }
+
+                }
+                else if (req1.equals("MTEAM*")){
+                    if (p.getTeam()){
+                        String envoi = "YTEAM "+ (char)j1.equipe+ "***";
+                        pw.print(envoi);
+                        pw.flush();
+                        System.out.println("SERVEUR : Commande envoyée : "+ envoi);
+                    }
+                    else {
+                        String envoi = "NTEAM***";
+                        pw.print(envoi);
+                        pw.flush();
+                        System.out.println("SERVEUR : Commande envoyée : "+ envoi);
                     }
                 }
             }

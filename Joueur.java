@@ -6,7 +6,7 @@ public class Joueur {
     public int x;
     public int y; 
     public int nbFantomes;
-
+    public int equipe;
     public Joueur (String id, String port){
         this.identifiant = id;
         this.port = port; 

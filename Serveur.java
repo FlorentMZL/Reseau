@@ -9,10 +9,17 @@ static ArrayList<Partie> ls = new ArrayList<Partie>();
 static ListepartiesClass  lsc = new ListepartiesClass(ls);
     public static void main (String[] args){
         int port = 4242;
-        try{
-            if (args.length>0){
-                port = Integer.parseInt(args[1]);
+        if (args.length==1){
+            if (checkPort(args[0])){
+                port = Integer.parseInt(args[0]);
             }
+            else{
+                return;
+            }
+
+        }
+        try{
+            
             ServerSocket server = new ServerSocket(port);
             while(true){
                
@@ -32,5 +39,17 @@ static ListepartiesClass  lsc = new ListepartiesClass(ls);
                 e.printStackTrace();
         }   
     }
+    public static boolean checkPort(String s){
+        
+        try {
+            int a = Integer.parseInt(s);
+            return true;
+        }
+        catch(NumberFormatException e){
+            System.out.println("pas un nombre pour le port!");
+        }
+        return false;
+    }
+
     
 }

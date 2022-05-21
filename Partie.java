@@ -16,6 +16,7 @@ public class Partie {
     private ArrayList<Joueur> joueurNonValide; //Joueurs n'ayant pas envoyé start
     private ArrayList<Joueur> listeJoueurs; //Joueurs inscrits dans la partie (peu importe s'ils ont envoyé start)
     private boolean lock;//Savoir quand on peut commencer une partie
+    
     public Partie( int[] taille, Joueur j ){
         
         this.tailleLab = taille; 
@@ -160,9 +161,7 @@ public class Partie {
         this.team = !team;
     }
     synchronized public void setTeams(){
-        System.out.println(set);
-        System.out.println("dsq");
-        System.out.println(team);
+       
         if (set == false){
             set = true;//Pour que les autres threads ne fassent rien a part le premier. 
             if (team){
@@ -174,6 +173,7 @@ public class Partie {
                     System.out.println("rentré");
                     i = i%2;
                     teams[i][k]=j;
+                    j.equipe = i;
                     if (i==0){
                         k+=1;
                     }
