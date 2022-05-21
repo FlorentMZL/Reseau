@@ -41,7 +41,7 @@ public class ThreadClass implements Runnable{
             
             while(true){
                 char[] buf = new char[50];
-                if (br.read(buf)==-1||socket.isClosed()){//si le client s'est déconnecté.
+                if (socket.isClosed()||br.read(buf)==-1){//si le client s'est déconnecté.
                     removeAll(j1);
                     break;
                 }
@@ -128,6 +128,12 @@ public class ThreadClass implements Runnable{
                                 System.out.println("SERVEUR : Commande envoyée : "+ envoiClient);
                                 pw.flush();
                             }
+                        }
+                        else {
+                        String envoiClient="REGNO***";
+                        pw.print(envoiClient);
+                        System.out.println("SERVEUR : Commande envoyée : "+ envoiClient);
+                        pw.flush();
                         }
                     }
                    

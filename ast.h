@@ -259,11 +259,13 @@ void *ecouteMulticast(void *arg){
         }
         if (r==0){
         char tampon[100];
+        
             while(1){
                 int rec = recv(sock, tampon, 100, 0);
+                tampon[rec] = '\0';
                 if (tampon[0]=='M'&&strcmp(tampon+rec-3,"+++")==0){
                 
-                tampon[rec] = '\0';
+                
                 char *id = malloc(9);
                 id = substr(tampon, 6,14);
                 
@@ -350,7 +352,10 @@ void recevoirPos(int descr){
     char bufRecu[21];
         recv(descr,bufRecu, 6, 0);
         bufRecu[7] = '\0'; 
-        if (bufRecu[4]=='!'){
+        if (bufRecu[0]=='G'){
+            printf("partie finie\n");
+        }
+        else if (bufRecu[4]=='!'){
             char xpos[4];
             char ypos[4];
             int recx =recv(descr, xpos, 3, 0);
@@ -359,12 +364,12 @@ void recevoirPos(int descr){
             xpos[recx] = '\0';
             ypos[recx] = '\0';
             int xnew = atoi(xpos);
-        int ynew = atoi(ypos);
-        recv(descr,bufRecu,3,0 );//"***"
+            int ynew = atoi(ypos);
+            recv(descr,bufRecu,3,0 );//"***"
 
-        printf("Nouvelle position : ligne %d, colonne %d. \n", xnew, ynew);
-    }
-    else{
+            printf("Nouvelle position : ligne %d, colonne %d. \n", xnew, ynew);
+        }
+        else{
         char xpos [4];
         char ypos[4];
         int recx =recv(descr, xpos, 3, 0);
@@ -559,10 +564,14 @@ void recupInfosStart(int descr){
               j= j-1;
           }
         intS[4] = '\0';
-        
+        int at = atoi(intS);
+        printf("%d" ,at);
+        if (at ==0){
+            printf("mauvais format");
+        }
 
        
-            if (bufScan[0]== 'z') {
+            else if (bufScan[0]== 'z') {
                 envoiDirection("UPMOV ", descr, intS);
                 recevoirPos(descr);
             }

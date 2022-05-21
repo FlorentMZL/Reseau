@@ -56,7 +56,7 @@ public class Labyrinthe{
     }
     
     public Fantome[] mouvementGhost(){
-    
+        System.out.println(listeFantomes.size());
         Fantome[] tab = new Fantome[listeFantomes.size()];
         int i = 0;
         for(Fantome f : listeFantomes){
@@ -490,9 +490,10 @@ public class Labyrinthe{
                 rand = new Random().nextInt((lab[0].length-1))+1;
                 rand2 = new Random().nextInt((lab[0].length-1))+1;
            }
-           lab[rand][rand2].fantome = new Fantome(rand, rand2);
+           Fantome f = new Fantome(rand, rand2);
+           lab[rand][rand2].fantome = f;
           
-           listeFantomes.add(lab[rand][rand2].fantome);
+           listeFantomes.add(f);
            
     
         }
@@ -518,12 +519,15 @@ public class Labyrinthe{
     }
     public void setFantomes(int n){
         for(Fantome f : listeFantomes){
+            
             int x = f.getX();
             int y = f.getY();
+            
             f = null;
             lab[x][y].fantome=null;
             
         }
+        listeFantomes.clear();
         
         this.nombreFantomes=n;
         placerFantome();
