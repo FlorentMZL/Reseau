@@ -219,10 +219,10 @@ void setFantomes(int descr, int n){
     char bufrec[8];
     recv(descr, bufrec,8,0);
     if (bufrec[0]=='D'){
-        printf("Erreur de modification des fantomes");
+        printf("Erreur de modification des fantomes\n");
     }
     else{
-        printf("Fantomes modifiés. ");
+        printf("Fantomes modifiés.\n ");
     }
 }
 void sendStart(int descr){
@@ -506,7 +506,7 @@ void recupInfosStart(int descr){
      fgets(bufScan, 300,stdin);
     bufScan[strlen(bufScan)-1]='\0';
     if (bufScan[0]=='m'){
-        printf("%s\n ", bufScan);
+        
         
         int longueurB = strlen(bufScan);
         char envoimsg [longueurB+6+1+1];
@@ -516,7 +516,7 @@ void recupInfosStart(int descr){
         envoimsg[longueurB+5]='*';
         envoimsg[longueurB+4]='*';
         envoimsg[longueurB+6+1+1]='\0';
-        printf("%s\n", envoimsg);
+        
         send(descr, envoimsg,longueurB+6+1, 0);
 
     }
@@ -533,7 +533,7 @@ void recupInfosStart(int descr){
         int recu = recv(descr,recums , 8,0);
         recums[recu]='\0';
         if (recums[0]=='N'){
-            printf("Le message n'a pas pu etre envoyé");
+            printf("Le message n'a pas pu etre envoyé\n");
 
         }
         else{
@@ -568,7 +568,7 @@ void recupInfosStart(int descr){
         int at = atoi(intS);
         printf("%d" ,at);
         if (at ==0){
-            printf("mauvais format");
+            printf("mauvais format\n");
         }
 
        

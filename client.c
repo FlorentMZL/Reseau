@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
           numPartie[j]='\0';
           int numpartieI = atoi(numPartie);
           if (numpartieI==0){
-            printf("erreur de syntaxe");
+            printf("erreur de syntaxe\n");
           }
           
           joined = joinPartie(descr, intS,port, numpartieI);
