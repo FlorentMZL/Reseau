@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 
 public class  ListepartiesClass{
-
+    static int nbMult;
     private ArrayList<Partie> listeParties;
     static int idMax;
 
@@ -28,6 +28,21 @@ public class  ListepartiesClass{
     public void add(Partie e){
         this.listeParties.add(e);
         e.setNumero(this.increment());
+        e.setIP("225.10."+nbMult+".4");
+        nbMult+=1;
+    }
+    public void remove(Partie p){
+        listeParties.remove(p);
+    }
+    public int nonCommencées(){
+        int i = 0;
+        for(Partie p:listeParties){
+            if (p.getLock()==false){
+                i++;
+            }
+        }
+        return i;
+
     }
 
 }
