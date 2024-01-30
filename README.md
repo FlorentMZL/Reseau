@@ -1,6 +1,6 @@
 Les membres du groupe numéro 41:
-    -MAZELET Florent 21958561  
-    -AMIRI Mohamed Aziz 21956339
+    -MAZELET Florent 
+    -AMIRI Mohamed Aziz 
     
 Comment compiler le projet:
     -make
